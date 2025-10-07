@@ -1,6 +1,8 @@
-obj
-asm.txt
+/obj
+/.vscode
+asm-code.txt
 byte-code.txt
-processor_debug
-processor_debug
-.vscode
+/processor_debug
+/processor
+/assembler
+/assembler_debug

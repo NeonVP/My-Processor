@@ -1,11 +1,6 @@
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+// FIXME: разнести файлы, архитектуру
 
-#include "stack.h"
-#include "calculator.h"
-#include "common.h"
-#include "file_processing.h"
+#include "processor.h"
 
 struct Processor_t {
     Stack_t stk = {};
@@ -30,14 +25,14 @@ int main( int argc, char** argv ) {
 }
 
 void ProcCtor( Processor_t* proc ) {         // TODO: more commands ( function for function )
-    StackCtor( &proc->stk, 10 );
+    StackCtor( &proc->stk, 10 );       // magic number
 }
 
-void ArgvProcessing( int argc, char** argv, FileStat* input_file ) {
+void ArgvProcessing( int argc, char** argv, FileStat* input_file ) {                // TODO: conditional compilated for assert
     assert( argv != NULL );
     assert( input_file != NULL );
 
-    input_file->address = "./byte-code.txt";
+    input_file->address = "./byte-code.txt";    // TODO: in default
 
     int opt = 0;
     const char* opts = "i:";
@@ -54,12 +49,12 @@ void ArgvProcessing( int argc, char** argv, FileStat* input_file ) {
     }
 }
 
-void ExeFileProcessing( Processor_t* proc, FileStat* file ) {
-    file->size = determining_the_file_size( file->address );
+void ExeFileProcessing( Processor_t* proc, FileStat* file ) {       // TODO: rename
+    file->size = DetermineFileSize( file->address );
     char* buffer = NULL;
     fprintf( stderr, "In %s \n", __func__ );
 
-    ReadingFile( file, &buffer ); 
+    ReadToBuffer( file, &buffer );
 
     sscanf( buffer, "%d", &proc->instruction_ptr );
 
@@ -68,8 +63,11 @@ void ExeFileProcessing( Processor_t* proc, FileStat* file ) {
 
     while ( sscanf( buffer, "%d", &num ) == 1 ) {
         proc->byte_code[ counter++ ] = num;
+        buffer += 1;
         fprintf( stderr, "%d ", num );
     }
 
     fprintf( stderr, "\n" );
+
+    free( buffer );      // FIXME: save old address to buffer
 }
