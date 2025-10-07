@@ -48,12 +48,12 @@ int main( int argc, char** argv ) {
 // }
 
 int AsmFileProcessing( Assembler_t* assembler ) {
-    my_assert( assembler != NULL, ERR_NULL_PTR );
+    my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
 
     char* buffer = ReadToBuffer( &( assembler->asm_file ) );
 
     StrPar* strings = ( StrPar* ) calloc ( assembler->asm_file.nLines, sizeof( StrPar ) );
-    my_assert( strings != NULL, ERR_NULL_PTR );
+    my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
 
     SplitIntoLines( strings, buffer, assembler->asm_file.nLines );
 
@@ -74,8 +74,8 @@ int AsmFileProcessing( Assembler_t* assembler ) {
                 case POP_CMD:
                     assembler->byte_codes[ index++ ] = byte_code;
                     assembler->byte_codes[ index++ ] = number;
-                    assembler->instruction_cnt += 1;
-                    PRINT( "%d %d  ---  %s %d \n", byte_code, number, instruction, number );
+                    assembler->instruction_cnt += 2;
+                    PRINT( "%d %d  ---  %s %d \n", assembler->byte_codes[ index - 2 ], assembler->byte_codes[ index - 1 ], instruction, number );
                     break;
                 default:
                     fprintf( stderr, "Incorrect assembler command \"%s %d\" in line %lu. \n", instruction, number, i );
@@ -147,6 +147,10 @@ int AsmCodeProcessing( char* instruction ) {     // FIXME: strncmp
         return SQRT_CMD;
     }
 
+    if ( strncmp( instruction, "IN", 2 ) == 0 ) {
+        return SQRT_CMD;
+    }
+
     if ( strncmp( instruction, "OUT", 3 ) == 0 ) {
         return OUT_CMD;
     }
@@ -155,20 +159,25 @@ int AsmCodeProcessing( char* instruction ) {     // FIXME: strncmp
         return HLT_CMD;
     }
 
+    // TODO: add PUSHR, POPR processing
+
     return 0;
 }
 
 void OutputInFile(Assembler_t* assembler ) {
-    my_assert( assembler != NULL, ERR_NULL_PTR )
+    my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR )
 
     FILE* file = fopen( assembler->exe_file.address, "w" );
-    my_assert( file != NULL, ERR_FAIL_OPEN );
+    my_assert( file != NULL, ASSERT_ERR_FAIL_OPEN );
 
-    fprintf( file, "%d", assembler->instruction_cnt );
+    fprintf( file, "%lu", assembler->instruction_cnt );
+
+    int element = 0;
+
     for ( size_t i = 0; i < assembler->instruction_cnt; i++ ) {
         fprintf( file, " %d", assembler->byte_codes[i] );
     }
 
     int result_of_fclose = fclose( file );
-    my_assert( result_of_fclose == 0, ERR_FAIL_CLOSE )
+    my_assert( result_of_fclose == 0, ASSERT_ERR_FAIL_CLOSE )
 }

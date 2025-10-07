@@ -2,72 +2,118 @@
 
 #include "processor.h"
 
-struct Processor_t {
-    Stack_t stk = {};
-    int byte_code[100] = {};
-    size_t instruction_ptr = 0;
-    // StackData_t regs[8] = {};            // TODO: add registers, PUSHR, POPR
-};
-
-void ProcCtor( Processor_t* proc );
-void ExeFileProcessing( Processor_t* proc, FileStat* file );
-void ArgvProcessing( int argc, char** argv, FileStat* input_file );
-
 int main( int argc, char** argv ) {
-    FileStat input_file = {};
-    ArgvProcessing( argc, argv, &input_file );
+    FileStat exe_file = {};
+    ArgvProcessing( argc, argv, &exe_file );
 
-    Processor_t proc = {};
-    ProcCtor( &proc );
-    fprintf( stderr, "ProcCtor \n" );
+    Processor_t processor = {};
+    ProcCtor( &processor, 40 );
 
-    ExeFileProcessing( &proc, &input_file );
-}
+    ExeFileToByteCode( &processor, &exe_file );
 
-void ProcCtor( Processor_t* proc ) {         // TODO: more commands ( function for function )
-    StackCtor( &proc->stk, 10 );       // magic number
-}
+    int result = ByteCodeProcessing( &processor );
 
-void ArgvProcessing( int argc, char** argv, FileStat* input_file ) {                // TODO: conditional compilated for assert
-    assert( argv != NULL );
-    assert( input_file != NULL );
+    ProcDtor( &processor );
 
-    input_file->address = "./byte-code.txt";    // TODO: in default
-
-    int opt = 0;
-    const char* opts = "i:";
-
-    while ( ( opt = getopt( argc, argv, opts ) ) != -1 ) {
-        switch ( opt ) {
-            case 'i':
-                input_file->address = strdup( optarg );
-                break;
-
-            default:
-                break;
-        }
+    if ( result == 1 ) {
+        return 1;
+    }
+    else {
+        return 0;
     }
 }
 
-void ExeFileProcessing( Processor_t* proc, FileStat* file ) {       // TODO: rename
+void ProcCtor( Processor_t* processor, size_t size ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR )
+
+    StackCtor( &( processor->stk ), size );
+    processor->byte_code = ( int* ) calloc ( SIZE, sizeof( *processor->byte_code ) );
+}
+
+void ProcDtor( Processor_t* processor ) {
+    StackDtor( &( processor->stk ) );
+}
+
+void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {       // TODO: rename
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR )
+    my_assert( file != NULL, ASSERT_ERR_NULL_PTR )
+
+    PRINT( "In %s \n", __func__ )
+
     file->size = DetermineFileSize( file->address );
-    char* buffer = NULL;
-    fprintf( stderr, "In %s \n", __func__ );
 
-    ReadToBuffer( file, &buffer );
+    char* buffer = ReadToBuffer( file );
+    PRINT( "%s \n", buffer )
+    char* old_buffer_ptr = buffer;
 
-    sscanf( buffer, "%d", &proc->instruction_ptr );
+    int n = 0;
+    sscanf( buffer, "%lu%n", &( processor->instruction_ptr ), &n );
+    buffer += n;
 
     size_t counter = 0;
     int num = 0;
-
-    while ( sscanf( buffer, "%d", &num ) == 1 ) {
-        proc->byte_code[ counter++ ] = num;
-        buffer += 1;
+    while ( sscanf( buffer, "%d%n", &num, &n ) == 1 ) {
+        processor->byte_code[ counter++ ] = num;
+        buffer += n;
         fprintf( stderr, "%d ", num );
     }
-
     fprintf( stderr, "\n" );
 
-    free( buffer );      // FIXME: save old address to buffer
+    free( old_buffer_ptr );      // FIXME: save old address to buffer
+
+    PRINT( "Out %s \n", __func__ )
+}
+
+int ByteCodeProcessing( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR )
+
+    PRINT( "In %s \n", __func__ )
+
+    for ( size_t i = 0; i < processor->instruction_ptr; i++ ) {
+        PRINT( GRID "Number of instruction: %lu \n", i )
+
+        switch ( *( processor->byte_code ) ) {
+            case PUSH_CMD:
+                CHECK_STK_IN_DEBUG( StackPush( &( processor->stk ), *( ++processor->byte_code ) ); )
+                break;
+            case POP_CMD:
+                CHECK_STK_IN_DEBUG( StackPop( &( processor->stk ) ); )
+                break;
+            case ADD_CMD:
+                CHECK_STK_IN_DEBUG( StackAdd( &( processor->stk ) ); )
+                break;
+            case SUB_CMD:
+                CHECK_STK_IN_DEBUG( StackSub( &( processor->stk ) ); )
+                break;
+            case MUL_CMD:
+                CHECK_STK_IN_DEBUG( StackMul( &( processor->stk ) ); )
+                break;
+            case DIV_CMD:
+                CHECK_STK_IN_DEBUG( StackDiv( &( processor->stk ) ); )
+                break;
+            case SQRT_CMD:
+                CHECK_STK_IN_DEBUG( StackSqrt( &( processor->stk ) ); )
+                break;
+            case POW_CMD:
+                CHECK_STK_IN_DEBUG( StackPow( &( processor->stk ) ); )
+                break;
+            case IN_CMD:
+                CHECK_STK_IN_DEBUG( StackIn( &( processor->stk ) ); )
+                break;
+            case OUT_CMD:
+                CHECK_STK_IN_DEBUG( StackOut( &( processor->stk ) ); )
+                break;
+            case HLT_CMD:
+                PRINT( "HLT \n" )
+                return 0;
+            default:
+                fprintf( stderr, COLOR_RED "Incorrect command %d \n" COLOR_RESET, *( processor->byte_code ) );
+                return 1;
+        }
+        processor->byte_code++;
+    }
+
+    PRINT( "Out %s \n", __func__ )
+
+    return 0;
 }

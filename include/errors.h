@@ -18,13 +18,14 @@
 #endif //_DEBUG
 
 enum Errors {
-    ERR_NONE = 0,
-    ERR_NULL_PTR = 1,
-    ERR_INFINITE_NUMBER = 2,
-    ERR_FAIL_OPEN = 3,
-    ERR_FAIL_READ = 4,
-    ERR_FAIL_CLOSE = 5,
-    ERR_FAIL_STAT = 6
+    ASSERT_ERR_NONE = 0,
+    ASSERT_ERR_NULL_PTR = 1,
+    ASSERT_ERR_INFINITE_NUMBER = 2,
+    ASSERT_ERR_FAIL_OPEN = 3,
+    ASSERT_ERR_FAIL_READ = 4,
+    ASSERT_ERR_FAIL_CLOSE = 5,
+    ASSERT_ERR_FAIL_STAT = 6,
+    ASSERT_ERR_FAIL_ALLOCATE_MEMORY = 7
 };
 
 extern const char* error_message[];

@@ -33,11 +33,10 @@ void StackDtor( Stack_t* stk ) {
 }
 
 void StackPush( Stack_t* stk, int element ) {
+    PRINT( "%s %d \n", __func__, element )
     DEBUG_IN_FUNC(
         if ( stk->size == stk->capacity ) {
-            stk->capacity *= 2;
-
-            StackRealloc( stk, stk->capacity );
+            StackRealloc( stk, stk->capacity * 2 );
         }
 
         *( stk->data + stk->size ) = element;
@@ -46,17 +45,20 @@ void StackPush( Stack_t* stk, int element ) {
 }
 
 void StackPop( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
     DEBUG_IN_FUNC(
         stk->size--;
         *( stk->data + stk->size ) = poison;
 
-        if ( stk->size * 4 <= stk->capacity ) {
-            StackRealloc( stk, stk->capacity / 2 );
+        if ( stk->size * 4 <= stk->capacity && stk->size != 0 ) {
+            StackRealloc( stk, stk->capacity / 2 + 1 );
         }
     )
 }
 
 StackData_t StackTop( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     #ifdef _DEBUG
     if ( StackVerify( stk ) != ERR_NONE ) {
         return 0;
@@ -67,14 +69,16 @@ StackData_t StackTop( Stack_t* stk ) {
 }
 
 void StackRealloc( Stack_t* stk, size_t capacity ) {
-    DEBUG_IN_FUNC(
+    // DEBUG_IN_FUNC(
         stk->capacity = capacity;
         ON_CANARY( stk->data--; )
 
         StackData_t* new_ptr = ( int* ) realloc ( stk->data, ( capacity ON_CANARY( + 2 ) ) * sizeof( StackData_t ) );
+        PRINT( "Pointer on stack after realloc = %p \n"
+               "Size = %lu \n", new_ptr, stk->size );
         if ( new_ptr == NULL ) {
             free( stk->data );
-            assert( new_ptr != NULL );
+            my_assert( new_ptr != NULL, ASSERT_ERR_FAIL_ALLOCATE_MEMORY );
         }
         stk->data = new_ptr;
 
@@ -86,7 +90,7 @@ void StackRealloc( Stack_t* stk, size_t capacity ) {
         #endif
 
         StackToPoison( stk );
-    )
+    // )
 }
 
 void StackToPoison( Stack_t* stk ) {

@@ -1,6 +1,8 @@
 #include "calculator.h"
 
 void StackAdd( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     int a = StackTop( stk );
     StackPop( stk );
     int b = StackTop( stk );
@@ -10,6 +12,8 @@ void StackAdd( Stack_t* stk ) {
 }
 
 void StackSub( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     int b = StackTop( stk );
     StackPop( stk );
     int a = StackTop( stk );
@@ -19,6 +23,8 @@ void StackSub( Stack_t* stk ) {
 }
 
 void StackDiv( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     int b   = StackTop( stk );
     StackPop( stk );
     int a = StackTop( stk );
@@ -29,7 +35,9 @@ void StackDiv( Stack_t* stk ) {
     StackPush( stk, a / b );
 }
 
-void StackMult( Stack_t* stk ) {
+void StackMul( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     int a = StackTop( stk );
     StackPop( stk );
     int b = StackTop( stk );
@@ -39,13 +47,15 @@ void StackMult( Stack_t* stk ) {
 }
 
 void StackPow( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     int indicator = StackTop( stk );
     StackPop( stk );
     int base      = StackTop( stk );
     StackPop( stk );
     int result    = 1;
 
-    for ( size_t i = 1; i < indicator; i++ ) {
+    for ( int i = 1; i < indicator; i++ ) {
         result *= base;
     }
 
@@ -53,12 +63,37 @@ void StackPow( Stack_t* stk ) {
 }
 
 void StackSqrt( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     int a = StackTop( stk );
+    PRINT( "%d \n", a );
     StackPop( stk );
     StackPush( stk, ( int ) sqrt( a ) );
 }
 
+void StackIn( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
+    int number = 0;
+
+    fprintf( stderr, "Input a number: " );
+    scanf( "%d", &number );
+
+    StackPush( stk, number );
+}
+
 void StackOut( Stack_t* stk ) {
+    PRINT( "%s \n", __func__ )
+
     fprintf( stderr, "%d\n", StackTop( stk ) );
+    StackPop( stk );
+}
+
+void StackPushR( Stack_t* stk, int* reg ) {
+    StackPush( stk, *reg );
+}
+
+void StackPopR( Stack_t* stk, int* reg ) {
+    *reg = StackTop( stk );
     StackPop( stk );
 }

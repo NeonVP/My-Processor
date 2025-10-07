@@ -13,11 +13,12 @@
 void StackAdd ( Stack_t* stk );
 void StackSub ( Stack_t* stk );
 void StackDiv ( Stack_t* stk );
-void StackMult( Stack_t* stk );
+void StackMul( Stack_t* stk );
 void StackPow ( Stack_t* stk );
 void StackSqrt( Stack_t* stk );
 
+void StackIn  ( Stack_t* stk );
 void StackOut ( Stack_t* stk );
 
 
-#endif //CALCULATOR_H
+#endif // CALCULATOR_H

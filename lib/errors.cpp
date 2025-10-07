@@ -7,5 +7,6 @@ const char* error_message[] = {
     "Failed to open file",
     "Failed to read file",
     "Failed to close file",
-    "Failed to stat file"
+    "Failed to stat file",
+    "Failed to allocate memory"
 };

@@ -1,10 +1,10 @@
 #include "FileRWUtils.h"
 
-void ArgvProcessing( int argc, char** argv, ON_ASM ( FileStat* asm_file, FileStat* exe_file )
-                                            ON_PROC(                     FileStat* exe_file ) ) {
-    my_assert( argv     != NULL, ERR_NULL_PTR        )
-    my_assert( asm_file != NULL, ERR_NULL_PTR        )
-    my_assert( isfinite( argc ), ERR_INFINITE_NUMBER )
+void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file ) {
+            my_assert( argv     != NULL, ASSERT_ERR_NULL_PTR        )
+    ON_ASM( my_assert( asm_file != NULL, ASSERT_ERR_NULL_PTR        ) )
+            my_assert( exe_file != NULL, ASSERT_ERR_NULL_PTR        )
+            my_assert( isfinite( argc ), ASSERT_ERR_INFINITE_NUMBER )
 
     ON_ASM( asm_file->address = "./asm-code.txt"; )
             exe_file->address = "./byte-code.txt";
@@ -33,16 +33,16 @@ char* ReadToBuffer( FileStat* input_file ) {
     }
 
     char* buffer = ( char* ) calloc ( ( size_t ) input_file->size + 1, sizeof( *buffer ) );
-    my_assert( buffer != NULL, ERR_NULL_PTR )
+    my_assert( buffer != NULL, ASSERT_ERR_NULL_PTR )
 
     FILE* file = fopen( input_file->address, "r" );
-    my_assert( file != NULL, ERR_FAIL_OPEN )
+    my_assert( file != NULL, ASSERT_ERR_FAIL_OPEN )
 
     size_t result_of_read = fread( buffer, sizeof( char ), ( size_t )input_file->size, file );
-    my_assert( result_of_read != 0, ERR_FAIL_READ );
+    my_assert( result_of_read != 0, ASSERT_ERR_FAIL_READ );
 
     int result_of_fclose = fclose( file );
-    my_assert( result_of_fclose == 0, ERR_FAIL_CLOSE );
+    my_assert( result_of_fclose == 0, ASSERT_ERR_FAIL_CLOSE );
 
     input_file->nLines = RowCounter( buffer );
     PRINT( "Out %s \n", __func__ )
@@ -51,8 +51,8 @@ char* ReadToBuffer( FileStat* input_file ) {
 }
 
 void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           // TODO: conditional compilation PRINT
-    my_assert( strings != NULL, ERR_NULL_PTR );
-    my_assert( buffer    != NULL, ERR_NULL_PTR );
+    my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( buffer  != NULL, ASSERT_ERR_NULL_PTR );
 
     PRINT( "In %s \n", __func__ )
 
@@ -75,6 +75,7 @@ void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           
 
     size_t line = 0;
     strings[ line ].ptr = buffer;
+
     while ( *buffer != '\0' ) {
         if ( *buffer == '\n') {
             *buffer = '\0';
@@ -92,7 +93,7 @@ void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           
 }
 
 size_t RowCounter( const char* buffer ) {
-    my_assert( buffer != NULL, ERR_NULL_PTR );
+    my_assert( buffer != NULL, ASSERT_ERR_NULL_PTR );
 
     size_t cnt = 1;
 
@@ -108,7 +109,7 @@ size_t RowCounter( const char* buffer ) {
 off_t DetermineFileSize( const char* file_address ) {
     struct stat file_stat;
     int check_stat = stat( file_address, &file_stat );
-    my_assert( check_stat == 0, ERR_FAIL_STAT );
+    my_assert( check_stat == 0, ASSERT_ERR_FAIL_STAT );
 
     return file_stat.st_size;
 }

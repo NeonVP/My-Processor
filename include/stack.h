@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "colors.h"
+#include "errors.h"
 
 typedef int StackData_t;
 

@@ -31,6 +31,8 @@ enum ASM_CMD {
     POPR_CMD  = 34
 };
 
+const size_t SIZE = 128;
+
 // struct AsmCommand_t{
 //     int cmd_number = 0;
 

@@ -23,8 +23,7 @@
 #define ON_ASM(...)
 #endif
 
-void ArgvProcessing( int argc, char** argv, ON_ASM ( FileStat* asm_file, FileStat* exe_file )
-                                            ON_PROC(                     FileStat* exe_file ) );
+void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file );
 
 size_t RowCounter( const char* text );
 off_t DetermineFileSize( const char* file_address );
