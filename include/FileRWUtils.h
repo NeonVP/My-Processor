@@ -11,12 +11,6 @@
 #include "common.h"
 #include "errors.h"
 
-#ifdef _PROC
-#define ON_PROC(...) __VA_ARGS__
-#else
-#define ON_PROC(...)
-#endif
-
 #ifdef _ASM
 #define ON_ASM(...) __VA_ARGS__
 #else
@@ -31,4 +25,4 @@ void SplitIntoLines( StrPar* strings, char* text, const size_t nLines );
 
 char* ReadToBuffer( FileStat* input_file );
 
-#endif //FILERWUTILS_H
+#endif // FILERWUTILS_H

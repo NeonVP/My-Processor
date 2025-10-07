@@ -10,15 +10,20 @@
 
 #include "stack.h"
 
-void StackAdd ( Stack_t* stk );
-void StackSub ( Stack_t* stk );
-void StackDiv ( Stack_t* stk );
-void StackMul( Stack_t* stk );
-void StackPow ( Stack_t* stk );
-void StackSqrt( Stack_t* stk );
+void ProcAdd ( Stack_t* stk );
+void ProcSub ( Stack_t* stk );
+void ProcDiv ( Stack_t* stk );
+void ProcMul ( Stack_t* stk );
+void ProcPow ( Stack_t* stk );
+void ProcSqrt( Stack_t* stk );
 
-void StackIn  ( Stack_t* stk );
-void StackOut ( Stack_t* stk );
+void ProcIn ( Stack_t* stk );
+void ProcOut( Stack_t* stk );
+
+void ProcPushR( Stack_t* stk, int* reg );
+void ProcPopR ( Stack_t* stk, int* reg );
+
+bool ProcJB( Stack_t* stk );
 
 
 #endif // CALCULATOR_H

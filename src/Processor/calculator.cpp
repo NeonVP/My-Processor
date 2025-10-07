@@ -1,6 +1,6 @@
 #include "calculator.h"
 
-void StackAdd( Stack_t* stk ) {
+void ProcAdd( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
     int a = StackTop( stk );
@@ -11,7 +11,7 @@ void StackAdd( Stack_t* stk ) {
     StackPush( stk, a + b );
 }
 
-void StackSub( Stack_t* stk ) {
+void ProcSub( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
     int b = StackTop( stk );
@@ -22,7 +22,7 @@ void StackSub( Stack_t* stk ) {
     StackPush( stk, a - b );
 }
 
-void StackDiv( Stack_t* stk ) {
+void ProcDiv( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
     int b   = StackTop( stk );
@@ -35,7 +35,7 @@ void StackDiv( Stack_t* stk ) {
     StackPush( stk, a / b );
 }
 
-void StackMul( Stack_t* stk ) {
+void ProcMul( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
     int a = StackTop( stk );
@@ -46,7 +46,7 @@ void StackMul( Stack_t* stk ) {
     StackPush( stk, a * b );
 }
 
-void StackPow( Stack_t* stk ) {
+void ProcPow( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
     int indicator = StackTop( stk );
@@ -62,7 +62,7 @@ void StackPow( Stack_t* stk ) {
     StackPush( stk, result );
 }
 
-void StackSqrt( Stack_t* stk ) {
+void ProcSqrt( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
     int a = StackTop( stk );
@@ -71,7 +71,7 @@ void StackSqrt( Stack_t* stk ) {
     StackPush( stk, ( int ) sqrt( a ) );
 }
 
-void StackIn( Stack_t* stk ) {
+void ProcIn( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
     int number = 0;
@@ -82,18 +82,36 @@ void StackIn( Stack_t* stk ) {
     StackPush( stk, number );
 }
 
-void StackOut( Stack_t* stk ) {
+void ProcOut( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
 
-    fprintf( stderr, "%d\n", StackTop( stk ) );
+    int n = StackTop( stk );
     StackPop( stk );
+
+    printf( "Output: %d \n", n );
 }
 
-void StackPushR( Stack_t* stk, int* reg ) {
+void ProcPushR( Stack_t* stk, int* reg ) {
     StackPush( stk, *reg );
 }
 
-void StackPopR( Stack_t* stk, int* reg ) {
+void ProcPopR( Stack_t* stk, int* reg ) {
     *reg = StackTop( stk );
     StackPop( stk );
+}
+
+// void ProcJMP( Stack_t* stk,  ) {
+
+// }
+
+bool ProcJB( Stack_t* stk ) {
+    my_assert( stk != NULL, ASSERT_ERR_NULL_PTR )
+
+    int a = StackTop( stk );
+    StackPop( stk );
+
+    int b = StackTop( stk );
+    StackPop( stk );
+
+    return ( a < b );
 }

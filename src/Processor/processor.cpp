@@ -7,7 +7,7 @@ int main( int argc, char** argv ) {
     ArgvProcessing( argc, argv, &exe_file );
 
     Processor_t processor = {};
-    ProcCtor( &processor, 40 );
+    ProcCtor( &processor, 20 );
 
     ExeFileToByteCode( &processor, &exe_file );
 
@@ -32,11 +32,13 @@ void ProcCtor( Processor_t* processor, size_t size ) {
 
 void ProcDtor( Processor_t* processor ) {
     StackDtor( &( processor->stk ) );
+    // free( processor->byte_code );
+    processor->byte_code = 0;
 }
 
 void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {       // TODO: rename
     my_assert( processor != NULL, ASSERT_ERR_NULL_PTR )
-    my_assert( file != NULL, ASSERT_ERR_NULL_PTR )
+    my_assert( file      != NULL, ASSERT_ERR_NULL_PTR )
 
     PRINT( "In %s \n", __func__ )
 
@@ -55,7 +57,7 @@ void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {       // TODO
     while ( sscanf( buffer, "%d%n", &num, &n ) == 1 ) {
         processor->byte_code[ counter++ ] = num;
         buffer += n;
-        fprintf( stderr, "%d ", num );
+        PRINT( "%d ", num )
     }
     fprintf( stderr, "\n" );
 
@@ -69,39 +71,51 @@ int ByteCodeProcessing( Processor_t* processor ) {
 
     PRINT( "In %s \n", __func__ )
 
-    for ( size_t i = 0; i < processor->instruction_ptr; i++ ) {
-        PRINT( GRID "Number of instruction: %lu \n", i )
+    size_t index = 0;
+    while ( index < processor->instruction_ptr ) {
+        int cmd = processor->byte_code[ index++ ];
+        PRINT( GRID "Number of instruction: %lu \n", index )
 
-        switch ( *( processor->byte_code ) ) {
+        switch ( cmd ) {
             case PUSH_CMD:
-                CHECK_STK_IN_DEBUG( StackPush( &( processor->stk ), *( ++processor->byte_code ) ); )
+                CHECK_STK_IN_DEBUG( StackPush( &( processor->stk ), processor->byte_code[ index++ ] ); )
                 break;
             case POP_CMD:
                 CHECK_STK_IN_DEBUG( StackPop( &( processor->stk ) ); )
                 break;
             case ADD_CMD:
-                CHECK_STK_IN_DEBUG( StackAdd( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcAdd( &( processor->stk ) ); )
                 break;
             case SUB_CMD:
-                CHECK_STK_IN_DEBUG( StackSub( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcSub( &( processor->stk ) ); )
                 break;
             case MUL_CMD:
-                CHECK_STK_IN_DEBUG( StackMul( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcMul( &( processor->stk ) ); )
                 break;
             case DIV_CMD:
-                CHECK_STK_IN_DEBUG( StackDiv( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcDiv( &( processor->stk ) ); )
                 break;
             case SQRT_CMD:
-                CHECK_STK_IN_DEBUG( StackSqrt( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcSqrt( &( processor->stk ) ); )
                 break;
             case POW_CMD:
-                CHECK_STK_IN_DEBUG( StackPow( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcPow( &( processor->stk ) ); )
                 break;
             case IN_CMD:
-                CHECK_STK_IN_DEBUG( StackIn( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcIn( &( processor->stk ) ); )
                 break;
             case OUT_CMD:
-                CHECK_STK_IN_DEBUG( StackOut( &( processor->stk ) ); )
+                CHECK_STK_IN_DEBUG( ProcOut( &( processor->stk ) ); )
+                break;
+            case JMP_CMD:
+                PRINT( "JMP \n" )
+                index = processor->byte_code[ index++ ];
+                break;
+            case PUSHR_CMD:
+                ProcPushR( &( processor->stk ), &( processor->regs[ processor->byte_code[ index++ ] ] ) );
+                break;
+            case POPR_CMD:
+                ProcPopR( &( processor->stk ), &processor->regs[ processor->byte_code[ index++ ] ] );
                 break;
             case HLT_CMD:
                 PRINT( "HLT \n" )
@@ -110,7 +124,7 @@ int ByteCodeProcessing( Processor_t* processor ) {
                 fprintf( stderr, COLOR_RED "Incorrect command %d \n" COLOR_RESET, *( processor->byte_code ) );
                 return 1;
         }
-        processor->byte_code++;
+        usleep( 500000 );
     }
 
     PRINT( "Out %s \n", __func__ )

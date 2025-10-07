@@ -57,28 +57,31 @@ int AsmFileProcessing( Assembler_t* assembler ) {
 
     SplitIntoLines( strings, buffer, assembler->asm_file.nLines );
 
-    char instruction[ MAX_CMD_LEN ] = "";
-    int  number                     = 0;
-    int  byte_code                  = 0;
-    int  number_of_params           = 0;
+    char instruction1[ MAX_CMD_LEN ] = "";
+    char instruction2[ MAX_CMD_LEN ] = "";
+    int  number                      = 0;
+
+    int  byte_code        = 0;
+    int  number_of_params = 0;
+
+    int reg_index = 0;
 
     PRINT( "Start of loop with sscanf \n" )
-    size_t index = 0;
     for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
-        number_of_params = sscanf( strings[i].ptr, "%s %d", instruction, &number );           //number of params
-        byte_code = AsmCodeProcessing( instruction );
+        number_of_params = sscanf( strings[i].ptr, "%s %d", instruction1, &number );
+        byte_code = AsmCodeProcessing( instruction1 );
 
         if ( number_of_params == 2 ) {
             switch ( byte_code ) {
                 case PUSH_CMD:
                 case POP_CMD:
-                    assembler->byte_codes[ index++ ] = byte_code;
-                    assembler->byte_codes[ index++ ] = number;
-                    assembler->instruction_cnt += 2;
-                    PRINT( "%d %d  ---  %s %d \n", assembler->byte_codes[ index - 2 ], assembler->byte_codes[ index - 1 ], instruction, number );
+                case JMP_CMD:
+                    assembler->byte_code[ assembler->instruction_cnt++ ] = byte_code;
+                    assembler->byte_code[ assembler->instruction_cnt++ ] = number;
+                    PRINT( "%d %d  ---  %s %d \n", assembler->byte_code[ assembler->instruction_cnt - 2 ], assembler->byte_code[ assembler->instruction_cnt - 1 ], instruction1, number );
                     break;
                 default:
-                    fprintf( stderr, "Incorrect assembler command \"%s %d\" in line %lu. \n", instruction, number, i );
+                    fprintf( stderr, "Incorrect assembler command \"%s %d\" in line %lu. \n", instruction1, number, i + 1 );
                     free( buffer );
                     free( strings );
                     return 0;
@@ -94,12 +97,20 @@ int AsmFileProcessing( Assembler_t* assembler ) {
                 case SQRT_CMD:
                 case OUT_CMD:
                 case HLT_CMD:
-                    assembler->byte_codes[ index++ ] = byte_code;
-                    assembler->instruction_cnt++;
-                    PRINT( "%d  ---  %s \n", byte_code, instruction )
+                    assembler->byte_code[ assembler->instruction_cnt++ ] = byte_code;
+                    PRINT( "%d  ---  %s \n", byte_code, instruction1 )
+                    break;
+                case PUSHR_CMD:
+                case POPR_CMD:
+                    assembler->byte_code[ assembler->instruction_cnt++ ] = byte_code;
+                    sscanf( strings[ i ].ptr, "%s %s", instruction1, instruction2 );
+                    reg_index = RegNameProcessing( instruction2 );
+                    assembler->byte_code[ assembler->instruction_cnt++ ] = reg_index;
+
+                    PRINT( "%d %d  ---  %s %s \n", byte_code, reg_index, instruction1, instruction2 );
                     break;
                 default:
-                    fprintf( stderr, "Incorrect assembler command \"%s\" in line %lu. \n", strings[i].ptr, i );
+                    fprintf( stderr, "Incorrect assembler command \"%s\" in line %lu. \n", strings[i].ptr, i + 1 );
                     free( buffer );
                     free( strings );
 
@@ -115,6 +126,14 @@ int AsmFileProcessing( Assembler_t* assembler ) {
 }
 
 int AsmCodeProcessing( char* instruction ) {     // FIXME: strncmp
+    if ( strncmp( instruction, "PUSHR", 5 ) == 0 ) {
+        return PUSHR_CMD;
+    }
+
+    if ( strncmp( instruction, "POPR", 4 ) == 0 ) {
+        return POPR_CMD;
+    }
+
     if ( strncmp( instruction, "PUSH", 4 ) == 0 ) {
         return PUSH_CMD;
     }
@@ -155,11 +174,13 @@ int AsmCodeProcessing( char* instruction ) {     // FIXME: strncmp
         return OUT_CMD;
     }
 
+    if ( strncmp( instruction, "JMP", 3 ) == 0 ) {
+        return JMP_CMD;
+    }
+
     if ( strncmp( instruction, "HLT", 3 ) == 0 ) {
         return HLT_CMD;
     }
-
-    // TODO: add PUSHR, POPR processing
 
     return 0;
 }
@@ -172,12 +193,24 @@ void OutputInFile(Assembler_t* assembler ) {
 
     fprintf( file, "%lu", assembler->instruction_cnt );
 
-    int element = 0;
-
     for ( size_t i = 0; i < assembler->instruction_cnt; i++ ) {
-        fprintf( file, " %d", assembler->byte_codes[i] );
+        fprintf( file, " %d", assembler->byte_code[i] );
     }
 
     int result_of_fclose = fclose( file );
     my_assert( result_of_fclose == 0, ASSERT_ERR_FAIL_CLOSE )
+}
+
+int RegNameProcessing( char* name ) {
+    if ( strncmp( name, "RAX", 3 ) ) {
+        return 1;
+    }
+    if ( strncmp( name, "RBX", 3 ) ) {
+        return 2;
+    }
+    if ( strncmp( name, "RCX", 3 ) ) {
+        return 3;
+    }
+
+    return 0;
 }

@@ -14,8 +14,8 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
 
     while ( ( opt = getopt( argc, argv, opts ) ) != -1 ) {
         switch ( opt ) {
-            case 'i': ON_ASM( asm_file->address = strdup( optarg ); )     ON_PROC( exe_file->address = strdup( optarg ); )   break;
-            case 'o': ON_ASM( exe_file->address = strdup( optarg ); )                                                        break;
+            case 'i': ON_ASM( asm_file->address = strdup( optarg ); )     exe_file->address = strdup( optarg );   break;
+            case 'o': ON_ASM( exe_file->address = strdup( optarg ); )                                             break;
 
             default:
                 ON_ASM( fprintf( stderr, "Warning: asm_file will be \"%s\" \n", asm_file->address ); )
