@@ -124,7 +124,7 @@ int ByteCodeProcessing( Processor_t* processor ) {
                 fprintf( stderr, COLOR_RED "Incorrect command %d \n" COLOR_RESET, *( processor->byte_code ) );
                 return 1;
         }
-        usleep( 500000 );
+        usleep( 200000 );
     }
 
     PRINT( "Out %s \n", __func__ )

@@ -13,7 +13,7 @@ int main( int argc, char** argv ) {
 
     PRINT( "FILES:\nfor input - %s\nfor output - %s\n", assembler.asm_file.address, assembler.exe_file.address );
 
-    AsmFileProcessing( &assembler );
+    AsmCodeToByteCode( &assembler );
 
     OutputInFile( &assembler );
 }
@@ -47,7 +47,7 @@ int main( int argc, char** argv ) {
 //     assembler->input_file.size = DetermineFileSize( assembler->input_file.address );
 // }
 
-int AsmFileProcessing( Assembler_t* assembler ) {
+int AsmCodeToByteCode( Assembler_t* assembler ) {
     my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
 
     char* buffer = ReadToBuffer( &( assembler->asm_file ) );

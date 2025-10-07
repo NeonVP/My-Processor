@@ -13,7 +13,7 @@ struct Assembler_t {
     int      byte_code[ SIZE ] = {};           // TODO: make expandable
 };
 
-int AsmFileProcessing( Assembler_t* assembler );
+int AsmCodeToByteCode( Assembler_t* assembler );
 int AsmCodeProcessing( char* instruction );
 int RegNameProcessing( char* name );
 
