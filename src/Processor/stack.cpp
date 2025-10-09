@@ -24,6 +24,8 @@ void StackCtor( Stack_t* stk, size_t capacity ) {
 }
 
 void StackDtor( Stack_t* stk ) {
+    ON_DEBUG( StackVerify( stk ); )
+    
     ON_CANARY( stk->data--; )
     free( stk->data );
 

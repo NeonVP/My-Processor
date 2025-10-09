@@ -17,6 +17,12 @@
 #define ON_ASM(...)
 #endif
 
+struct FileStat {
+    const char* address = "";
+    size_t nLines = 0;
+    off_t  size   = 0;
+};
+
 void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file );
 
 size_t RowCounter( const char* text );

@@ -6,6 +6,8 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
             my_assert( exe_file != NULL, ASSERT_ERR_NULL_PTR        )
             my_assert( isfinite( argc ), ASSERT_ERR_INFINITE_NUMBER )
 
+    PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
+
     ON_ASM( asm_file->address = "./asm-code.txt"; )
             exe_file->address = "./byte-code.txt";
 
@@ -23,10 +25,12 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
                 break;
         }
     }
+
+    PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
 }
 
 char* ReadToBuffer( FileStat* input_file ) {
-    PRINT( "In %s \n", __func__ )                       // TODO: return buffer
+    PRINT( "In %s \n", __func__ )                       // TODO25: return buffer
 
     if ( input_file->size == 0 ) {
         input_file->size = DetermineFileSize( input_file->address );
@@ -38,7 +42,7 @@ char* ReadToBuffer( FileStat* input_file ) {
     FILE* file = fopen( input_file->address, "r" );
     my_assert( file != NULL, ASSERT_ERR_FAIL_OPEN )
 
-    size_t result_of_read = fread( buffer, sizeof( char ), ( size_t )input_file->size, file );
+    size_t result_of_read = fread( buffer, sizeof( char ), ( size_t )input_file->size, file );          // TODO25: release check
     my_assert( result_of_read != 0, ASSERT_ERR_FAIL_READ );
 
     int result_of_fclose = fclose( file );
@@ -50,7 +54,7 @@ char* ReadToBuffer( FileStat* input_file ) {
     return buffer;
 }
 
-void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           // TODO: conditional compilation PRINT
+void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           // TODO25: conditional compilation PRINT
     my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
     my_assert( buffer  != NULL, ASSERT_ERR_NULL_PTR );
 
@@ -59,19 +63,6 @@ void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           
     if ( nLines == 0 ) {
         nLines = RowCounter( buffer );
     }
-
-    // TODO: in one loop
-    // for ( size_t i = 0; i < nLines; i++ ) {
-    //     strings[i].ptr = buffer;
-
-    //     while ( *buffer != '\n' || *buffer != '\0' ) {
-    //         strings[i].len++;
-    //         buffer++;
-    //     }
-
-    //     *buffer = '\0';
-    //     buffer++;
-    // }
 
     size_t line = 0;
     strings[ line ].ptr = buffer;
@@ -93,7 +84,7 @@ void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           
 }
 
 size_t RowCounter( const char* buffer ) {
-    my_assert( buffer != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( buffer, ASSERT_ERR_NULL_PTR );
 
     size_t cnt = 1;
 

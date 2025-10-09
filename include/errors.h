@@ -3,17 +3,17 @@
 
 #include "colors.h"
 
-#ifdef _DEBUG
+#ifdef _DEBUG           // TODO: write with &&
     #define my_assert(arg, err_code)                                                                                       \
         if ( !arg ) {                                                                                                      \
             fprintf( stderr, COLOR_RED "Error in function %s %s:%d: %s \n" COLOR_RESET,                                    \
-                    __func__, __FILE__, __LINE__, error_message[ err_code ]);                                               \
+                    __func__, __FILE__, __LINE__, error_message[ err_code ]);                                              \
             abort();                                                                                                       \
-        }
+        }   ;
 
-    #define PRINT(str, ...) fprintf( stderr, COLOR_BRIGHT_CYAN str COLOR_RESET, ##__VA_ARGS__ );
+    #define PRINT(str, ...) fprintf( stderr, str COLOR_RESET, ##__VA_ARGS__ );
 #else
-    #define my_assert(arg, err_code)
+    #define my_assert(arg, err_code) ((void) (arg));
     #define PRINT(str, ...)
 #endif //_DEBUG
 
@@ -29,5 +29,4 @@ enum Errors {
 };
 
 extern const char* error_message[];
-
 #endif //ERRORS_H

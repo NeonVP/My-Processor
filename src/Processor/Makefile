@@ -6,9 +6,9 @@ NORMAL_CPPFLAGS = $(BASE_CPPFLAGS) -O2
 
 DEBUG_CPPFLAGS = $(BASE_CPPFLAGS) -ggdb3 -O0 -D_DEBUG -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-SOURCES := src/Processor/processor.cpp src/Processor/stack.cpp src/Processor/calculator.cpp lib/Processing/FileRWUtils.cpp lib/errors.cpp
-NORMAL_OBJECTS := obj/normal/src/Processor/processor.o obj/normal/src/Processor/stack.o obj/normal/src/Processor/calculator.o obj/normal/lib/Processing/FileRWUtils.o obj/normal/lib/errors.o
-DEBUG_OBJECTS  := obj/debug/src/Processor/processor.o obj/debug/src/Processor/stack.o obj/debug/src/Processor/calculator.o obj/debug/lib/Processing/FileRWUtils.o obj/debug/lib/errors.o
+SOURCES := src/Processor/processor.cpp src/Processor/stack.cpp src/Processor/commands.cpp lib/Processing/FileRWUtils.cpp lib/errors.cpp
+NORMAL_OBJECTS := obj/normal/src/Processor/processor.o obj/normal/src/Processor/stack.o obj/normal/src/Processor/commands.o obj/normal/lib/Processing/FileRWUtils.o obj/normal/lib/errors.o
+DEBUG_OBJECTS  := obj/debug/src/Processor/processor.o obj/debug/src/Processor/stack.o obj/debug/src/Processor/commands.o obj/debug/lib/Processing/FileRWUtils.o obj/debug/lib/errors.o
 
 TARGET := processor
 

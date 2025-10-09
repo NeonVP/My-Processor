@@ -7,11 +7,11 @@ DEBUG_CPPFLAGS  = $(BASE_CPPFLAGS) -ggdb3 -O0 -D_DEBUG -fsanitize=address,alignm
 
 TARGET := assembler
 
-SOURCES := src/Assembler/assembler.cpp lib/Processing/FileRWUtils.cpp src/errors.cpp lib/errors.cpp
+SOURCES := src/Assembler/main.cpp src/Assembler/assembler.cpp lib/Processing/FileRWUtils.cpp src/errors.cpp lib/errors.cpp
 
-NORMAL_OBJECTS := obj/normal/src/Assembler/assembler.o obj/normal/lib/Processing/FileRWUtils.o obj/normal/lib/errors.o
+NORMAL_OBJECTS := obj/normal/src/Assembler/main.o obj/normal/src/Assembler/assembler.o obj/normal/lib/Processing/FileRWUtils.o obj/normal/lib/errors.o
 
-DEBUG_OBJECTS  := obj/debug/src/Assembler/assembler.o  obj/debug/lib/Processing/FileRWUtils.o  obj/debug/lib/errors.o
+DEBUG_OBJECTS  := obj/debug/src/Assembler/main.o obj/debug/src/Assembler/assembler.o  obj/debug/lib/Processing/FileRWUtils.o  obj/debug/lib/errors.o
 
 all: $(TARGET)
 

@@ -1,4 +1,5 @@
-#include "calculator.h"
+#include "commands.h"
+
 
 void ProcAdd( Stack_t* stk ) {
     PRINT( "%s \n", __func__ )
@@ -46,7 +47,7 @@ void ProcMul( Stack_t* stk ) {
     StackPush( stk, a * b );
 }
 
-void ProcPow( Stack_t* stk ) {
+void ProcPow( Stack_t* stk ) {  // FIXME: i don't work
     PRINT( "%s \n", __func__ )
 
     int indicator = StackTop( stk );
@@ -71,7 +72,7 @@ void ProcSqrt( Stack_t* stk ) {
     StackPush( stk, ( int ) sqrt( a ) );
 }
 
-void ProcIn( Stack_t* stk ) {
+void ProcIn( Stack_t* stk ) {           // FIXME: i don't work
     PRINT( "%s \n", __func__ )
 
     int number = 0;
@@ -88,7 +89,7 @@ void ProcOut( Stack_t* stk ) {
     int n = StackTop( stk );
     StackPop( stk );
 
-    printf( "Output: %d \n", n );
+    fprintf( stderr, "Output: %d \n", n );
 }
 
 void ProcPushR( Stack_t* stk, int* reg ) {
@@ -98,20 +99,4 @@ void ProcPushR( Stack_t* stk, int* reg ) {
 void ProcPopR( Stack_t* stk, int* reg ) {
     *reg = StackTop( stk );
     StackPop( stk );
-}
-
-// void ProcJMP( Stack_t* stk,  ) {
-
-// }
-
-bool ProcJB( Stack_t* stk ) {
-    my_assert( stk != NULL, ASSERT_ERR_NULL_PTR )
-
-    int a = StackTop( stk );
-    StackPop( stk );
-
-    int b = StackTop( stk );
-    StackPop( stk );
-
-    return ( a < b );
 }

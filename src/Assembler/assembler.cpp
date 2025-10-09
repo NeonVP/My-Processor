@@ -1,191 +1,185 @@
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-
+// TODO: вынести main в отдельный файл main.cpp
 #include "assembler.h"
 
-
-int main( int argc, char** argv ) {
-    Assembler_t assembler = {};
-    ArgvProcessing( argc, argv, &( assembler.asm_file ), &( assembler.exe_file ) );
-
-    // AsmCtor( argc, argv, &assembler );            // TODO: transfer parser to separate function
-
-    PRINT( "FILES:\nfor input - %s\nfor output - %s\n", assembler.asm_file.address, assembler.exe_file.address );
-
-    AsmCodeToByteCode( &assembler );
-
-    OutputInFile( &assembler );
-}
-
-// void AsmCtor( int argc, char** argv, Assembler_t* assembler ) {
-//     assert( argc > 0 );
-//     assert( argv != NULL );
-//     assert( assembler != NULL );
-
-//     assembler->asm_file.address  = "./asm.txt";
-//     assembler->exe_file.address = "./byte-code.txt";
-
-//     const char* const opts = "i:o:";
-//     int opt = 0;
-
-//     // TODO: transfer all parsers to separate function
-//     while ( ( opt = getopt( argc, argv, opts ) ) != -1 ) {
-//         switch ( opt ) {
-//             case 'i':
-//                 assembler->input_file.address  = strdup( optarg );
-//                 break;
-//             case 'o':
-//                 assembler->output_file.address = strdup( optarg );
-//                 break;
-//             default:
-//                 fprintf( stderr, "Incorrect cmd params. Program will use std files.\n" );
-//                 break;
-//         }
-//     }
-
-//     assembler->input_file.size = DetermineFileSize( assembler->input_file.address );
-// }
+#define StrCompare( instruction, str ) StrCompare( instruction, str, sizeof( str ) )
 
 int AsmCodeToByteCode( Assembler_t* assembler ) {
     my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
 
+    PRINT( GRID COLOR_BRIGHT_YELLOW "In %s \n\n", __func__ )
+
     char* buffer = ReadToBuffer( &( assembler->asm_file ) );
 
-    StrPar* strings = ( StrPar* ) calloc ( assembler->asm_file.nLines, sizeof( StrPar ) );
+    StrPar* strings = ( StrPar* ) calloc ( assembler->asm_file.nLines, sizeof( *strings ) );
     my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
 
     SplitIntoLines( strings, buffer, assembler->asm_file.nLines );
 
-    char instruction1[ MAX_CMD_LEN ] = "";
-    char instruction2[ MAX_CMD_LEN ] = "";
-    int  number                      = 0;
+    // every row have maximum 2 instructions, so max number of instructions is number of lines twice
+    assembler->byte_code = ( int* ) calloc ( assembler->asm_file.nLines * 2, sizeof( int ) );
+    my_assert( assembler->byte_code != NULL, ASSERT_ERR_FAIL_ALLOCATE_MEMORY )
 
-    int  byte_code        = 0;
+    char instruction1[ MAX_INSTRUCT_LEN ] = "";
+    char instruction2[ MAX_INSTRUCT_LEN ] = "";
+    int  number                           = 0;
+
+    int  command        = 0;
     int  number_of_params = 0;
-
-    int reg_index = 0;
+    int n = 0;
 
     PRINT( "Start of loop with sscanf \n" )
     for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
-        number_of_params = sscanf( strings[i].ptr, "%s %d", instruction1, &number );
-        byte_code = AsmCodeProcessing( instruction1 );
+        number_of_params = sscanf( strings[ i ].ptr, "%s%n", instruction1, &n );
+        strings[ i ].ptr += n;
+        command = AsmCommandProcessing( instruction1 );
 
-        if ( number_of_params == 2 ) {
-            switch ( byte_code ) {
-                case PUSH_CMD:
-                case POP_CMD:
-                case JMP_CMD:
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = byte_code;
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = number;
-                    PRINT( "%d %d  ---  %s %d \n", assembler->byte_code[ assembler->instruction_cnt - 2 ], assembler->byte_code[ assembler->instruction_cnt - 1 ], instruction1, number );
-                    break;
-                default:
-                    fprintf( stderr, "Incorrect assembler command \"%s %d\" in line %lu. \n", instruction1, number, i + 1 );
+        switch ( command ) {
+            case PUSH_CMD:
+            case POP_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+                number_of_params = sscanf( strings[ i ].ptr, "%s", instruction2 );
+                number = atoi( instruction2 );
+
+                if ( number == 0 && instruction2[ 0 ] != '\0' ) {
+                    fprintf( stderr, COLOR_RED "Incorrect assembler command \"%s %s\" in line %lu. \n" COLOR_RESET, instruction1, instruction2, i + 1 );
                     free( buffer );
                     free( strings );
                     return 0;
-            }
-        }
-        else {
-            switch ( byte_code ) {
-                case ADD_CMD:
-                case SUB_CMD:
-                case MUL_CMD:
-                case DIV_CMD:
-                case POW_CMD:
-                case SQRT_CMD:
-                case OUT_CMD:
-                case HLT_CMD:
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = byte_code;
-                    PRINT( "%d  ---  %s \n", byte_code, instruction1 )
-                    break;
-                case PUSHR_CMD:
-                case POPR_CMD:
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = byte_code;
-                    sscanf( strings[ i ].ptr, "%s %s", instruction1, instruction2 );
-                    reg_index = RegNameProcessing( instruction2 );
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = reg_index;
+                }
 
-                    PRINT( "%d %d  ---  %s %s \n", byte_code, reg_index, instruction1, instruction2 );
-                    break;
-                default:
-                    fprintf( stderr, "Incorrect assembler command \"%s\" in line %lu. \n", strings[i].ptr, i + 1 );
-                    free( buffer );
-                    free( strings );
-
-                    return 0;
+                assembler->byte_code[ assembler->instruction_cnt++ ] = number;
+                PRINT( "%d %d  ---  %s %d \n", assembler->byte_code[ assembler->instruction_cnt - 2 ], assembler->byte_code[ assembler->instruction_cnt - 1 ], instruction1, number );
+                break;
+            case JMP_CMD:
+            case JA_CMD:
+            case JB_CMD:
+            case JAE_CMD:
+            case JBE_CMD:
+            case JE_CMD:
+                break;
+            case ADD_CMD:
+            case SUB_CMD:
+            case MUL_CMD:
+            case DIV_CMD:
+            case POW_CMD:
+            case SQRT_CMD:
+            case OUT_CMD:
+            case HLT_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+                PRINT( "%d  ---  %s \n", command, instruction1 )
+                break;
+            default:
+                fprintf( stderr, "Incorrect assembler command \"%s %d\" in line %lu. \n", instruction1, number, i + 1 );
+                free( buffer );
+                free( strings );
+                return 0;
             }
+        switch ( command ) {
+            case ADD_CMD:
+            case SUB_CMD:
+            case MUL_CMD:
+            case DIV_CMD:
+            case POW_CMD:
+            case SQRT_CMD:
+            case OUT_CMD:
+            case HLT_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+                PRINT( "%d  ---  %s \n", command, instruction1 )
+                break;
+            default:
+                fprintf( stderr, "Incorrect assembler command \"%s\" in line %lu. \n", strings[i].ptr, i + 1 );
+                free( buffer );
+                free( strings );
+
+                return 0;
         }
     }
 
     free( buffer );
     free( strings );
 
+    PRINT( GRID COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
+
     return 1;
 }
 
-int AsmCodeProcessing( char* instruction ) {     // FIXME: strncmp
-    if ( strncmp( instruction, "PUSHR", 5 ) == 0 ) {
-        return PUSHR_CMD;
-    }
+void AsmCodeProcessing( Assembler_t assembler ) {
 
-    if ( strncmp( instruction, "POPR", 4 ) == 0 ) {
-        return POPR_CMD;
-    }
+}
 
-    if ( strncmp( instruction, "PUSH", 4 ) == 0 ) {
+int AsmCommandProcessing( char* instruction ) {
+    if ( StrCompare( instruction, "PUSH" ) == 0 ) {
         return PUSH_CMD;
     }
 
-    if ( strncmp( instruction, "POP", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "POP" ) == 0 ) {
         return POP_CMD;
     }
 
-    if ( strncmp( instruction, "ADD", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "ADD" ) == 0 ) {
         return ADD_CMD;
     }
 
-    if ( strncmp( instruction, "SUB", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "SUB" ) == 0 ) {
         return SUB_CMD;
     }
 
-    if ( strncmp( instruction, "MUL", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "MUL" ) == 0 ) {
         return MUL_CMD;
     }
 
-    if ( strncmp( instruction, "DIV", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "DIV" ) == 0 ) {
         return DIV_CMD;
     }
 
-    if ( strncmp( instruction, "POW", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "POW" ) == 0 ) {
         return POW_CMD;
     }
 
-    if ( strncmp( instruction, "SQRT", 4 ) == 0 ) {
+    if ( StrCompare( instruction, "SQRT" ) == 0 ) {
         return SQRT_CMD;
     }
 
-    if ( strncmp( instruction, "IN", 2 ) == 0 ) {
+    if ( StrCompare( instruction, "IN" ) == 0 ) {
         return SQRT_CMD;
     }
 
-    if ( strncmp( instruction, "OUT", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "OUT" ) == 0 ) {
         return OUT_CMD;
     }
 
-    if ( strncmp( instruction, "JMP", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "JMP" ) == 0 ) {
         return JMP_CMD;
     }
 
-    if ( strncmp( instruction, "HLT", 3 ) == 0 ) {
+    if ( StrCompare( instruction, "JE" ) == 0 ) {
+        return JE_CMD;
+    }
+
+    if ( StrCompare( instruction, "JB" ) == 0 ) {
+        return JB_CMD;
+    }
+
+    if ( StrCompare( instruction, "JA" ) == 0 ) {
+        return JA_CMD;
+    }
+
+    if ( StrCompare( instruction, "JBE" ) == 0 ) {
+        return JBE_CMD;
+    }
+
+    if ( StrCompare( instruction, "JAE" ) == 0 ) {
+        return JAE_CMD;
+    }
+
+    if ( StrCompare( instruction, "HLT" ) == 0 ) {
         return HLT_CMD;
     }
 
     return 0;
 }
 
-void OutputInFile(Assembler_t* assembler ) {
+void OutputInFile( Assembler_t* assembler ) {
     my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR )
 
     FILE* file = fopen( assembler->exe_file.address, "w" );
@@ -202,15 +196,15 @@ void OutputInFile(Assembler_t* assembler ) {
 }
 
 int RegNameProcessing( char* name ) {
-    if ( strncmp( name, "RAX", 3 ) ) {
-        return 1;
-    }
-    if ( strncmp( name, "RBX", 3 ) ) {
-        return 2;
-    }
-    if ( strncmp( name, "RCX", 3 ) ) {
-        return 3;
+    if ( strlen( name ) == 3 ) {
+        if ( name[0] == 'R' && name[2] == 'X' ) {
+            return name[1] - 'A' + 1;
+        }
     }
 
-    return 0;
+    return -1;
+}
+
+void LabelProcessing( Assembler_t assembler ) {
+
 }

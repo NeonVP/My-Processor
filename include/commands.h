@@ -23,7 +23,4 @@ void ProcOut( Stack_t* stk );
 void ProcPushR( Stack_t* stk, int* reg );
 void ProcPopR ( Stack_t* stk, int* reg );
 
-bool ProcJB( Stack_t* stk );
-
-
 #endif // CALCULATOR_H

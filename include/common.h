@@ -9,12 +9,6 @@ struct StrPar{
     size_t len = 0;
 };
 
-struct FileStat {
-    const char* address = "";
-    size_t nLines = 0;
-    off_t  size   = 0;
-};
-
 enum ASM_CMD {
     PUSH_CMD  = 1,
     POP_CMD   = 2,
@@ -27,7 +21,12 @@ enum ASM_CMD {
     IN_CMD    = 9,
     OUT_CMD   = 10,
     JMP_CMD   = 11,
-    HLT_CMD   = 12,
+    JB_CMD    = 12,
+    JA_CMD    = 13,
+    JBE_CMD   = 14,
+    JAE_CMD   = 15,
+    JE_CMD    = 16,
+    HLT_CMD   = 17,
     PUSHR_CMD = 33,
     POPR_CMD  = 34
 };
