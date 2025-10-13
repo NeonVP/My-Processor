@@ -1,7 +1,7 @@
-// TODO: вынести main в отдельный файл main.cpp
 #include "assembler.h"
 
-#define StrCompare( instruction, str ) StrCompare( instruction, str, sizeof( str ) )
+#define StrCompare( str1, str2 ) strncmp( str1, str2, sizeof( str2 ) - 1 )
+
 
 int AsmCodeToByteCode( Assembler_t* assembler ) {
     my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
@@ -103,78 +103,19 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
     return 1;
 }
 
-void AsmCodeProcessing( Assembler_t assembler ) {
-
-}
-
-int AsmCommandProcessing( char* instruction ) {
-    if ( StrCompare( instruction, "PUSH" ) == 0 ) {
-        return PUSH_CMD;
-    }
-
-    if ( StrCompare( instruction, "POP" ) == 0 ) {
-        return POP_CMD;
-    }
-
-    if ( StrCompare( instruction, "ADD" ) == 0 ) {
-        return ADD_CMD;
-    }
-
-    if ( StrCompare( instruction, "SUB" ) == 0 ) {
-        return SUB_CMD;
-    }
-
-    if ( StrCompare( instruction, "MUL" ) == 0 ) {
-        return MUL_CMD;
-    }
-
-    if ( StrCompare( instruction, "DIV" ) == 0 ) {
-        return DIV_CMD;
-    }
-
-    if ( StrCompare( instruction, "POW" ) == 0 ) {
-        return POW_CMD;
-    }
-
-    if ( StrCompare( instruction, "SQRT" ) == 0 ) {
-        return SQRT_CMD;
-    }
-
-    if ( StrCompare( instruction, "IN" ) == 0 ) {
-        return SQRT_CMD;
-    }
-
-    if ( StrCompare( instruction, "OUT" ) == 0 ) {
-        return OUT_CMD;
-    }
-
-    if ( StrCompare( instruction, "JMP" ) == 0 ) {
-        return JMP_CMD;
-    }
-
-    if ( StrCompare( instruction, "JE" ) == 0 ) {
-        return JE_CMD;
-    }
-
-    if ( StrCompare( instruction, "JB" ) == 0 ) {
-        return JB_CMD;
-    }
-
-    if ( StrCompare( instruction, "JA" ) == 0 ) {
-        return JA_CMD;
-    }
-
-    if ( StrCompare( instruction, "JBE" ) == 0 ) {
-        return JBE_CMD;
-    }
-
-    if ( StrCompare( instruction, "JAE" ) == 0 ) {
-        return JAE_CMD;
-    }
-
-    if ( StrCompare( instruction, "HLT" ) == 0 ) {
-        return HLT_CMD;
-    }
+int AsmCodeProcessing( char* instruction ) {
+    if ( StrCompare( instruction, "PUSH" ) == 0 ) { return PUSH_CMD; }
+    if ( StrCompare( instruction, "POP"  ) == 0 ) { return POP_CMD;  }
+    if ( StrCompare( instruction, "ADD"  ) == 0 ) { return ADD_CMD;  }
+    if ( StrCompare( instruction, "SUB"  ) == 0 ) { return SUB_CMD;  }
+    if ( StrCompare( instruction, "MUL"  ) == 0 ) { return MUL_CMD;  }
+    if ( StrCompare( instruction, "DIV"  ) == 0 ) { return DIV_CMD;  }
+    if ( StrCompare( instruction, "POW"  ) == 0 ) { return POW_CMD;  }
+    if ( StrCompare( instruction, "SQRT" ) == 0 ) { return SQRT_CMD; }
+    if ( StrCompare( instruction, "IN"   ) == 0 ) { return SQRT_CMD; }
+    if ( StrCompare( instruction, "OUT"  ) == 0 ) { return OUT_CMD;  }
+    if ( StrCompare( instruction, "JMP"  ) == 0 ) { return JMP_CMD;  }
+    if ( StrCompare( instruction, "HLT"  ) == 0 ) { return HLT_CMD;  }
 
     return 0;
 }
@@ -203,8 +144,4 @@ int RegNameProcessing( char* name ) {
     }
 
     return -1;
-}
-
-void LabelProcessing( Assembler_t assembler ) {
-
 }
