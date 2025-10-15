@@ -8,7 +8,16 @@ int main( int argc, char** argv ) {
 
     PRINT( COLOR_BRIGHT_WHITE "FILES:\nfor input - %s\nfor output - %s\n", assembler.asm_file.address, assembler.exe_file.address );
 
-    AsmCodeToByteCode( &assembler );
+    int processing_result = AsmCodeToByteCode( &assembler );
+    if ( !processing_result ) {
+        fprintf( stderr, COLOR_BRIGHT_RED "Emergency shutdown of the assembler \n" );
+
+        AssemblerDtor( &assembler );
+        return 1;
+    }
 
     OutputInFile( &assembler );
+
+    AssemblerDtor( &assembler );
+    return 0;
 }
