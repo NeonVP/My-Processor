@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 #include "FileRWUtils.h"
-#include "commands.h"
+#include "stack.h"
 
 #ifdef _DEBUG
 #define CHECK_STK_IN_DEBUG(...)                                    \
@@ -28,6 +28,24 @@ void ProcDtor( Processor_t* processor );
 void ExeFileToByteCode ( Processor_t* processor, FileStat* file );
 int  ByteCodeProcessing( Processor_t* processor );
 
+
+void ProcPush( Processor_t* processor);
+void ProcPop( Processor_t* processor);
+
+void ProcAdd ( Processor_t* processor );
+void ProcSub ( Processor_t* processor );
+void ProcDiv ( Processor_t* processor );
+void ProcMul ( Processor_t* processor );
+void ProcPow ( Processor_t* processor );
+void ProcSqrt( Processor_t* processor );
+
+void ProcIn ( Processor_t* processor );
+void ProcOut( Processor_t* processor );
+
+void ProcPushR( Processor_t* processor );
+void ProcPopR ( Processor_t* processor );
+
 void ProcJump( Processor_t* processor );
+
 
 #endif // PROCESSOR_H

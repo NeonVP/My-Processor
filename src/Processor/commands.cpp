@@ -1,102 +1,150 @@
-#include "commands.h"
+#include "processor.h"
 
 
-void ProcAdd( Stack_t* stk ) {
-    PRINT( "%s \n", __func__ )
+void ProcPush( Processor_t* processor) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
-    int a = StackTop( stk );
-    StackPop( stk );
-    int b = StackTop( stk );
-    StackPop( stk );
-
-    StackPush( stk, a + b );
+    StackPush( &( processor->stk ), processor->byte_code[ processor->instruction_ptr++ ] );
 }
 
-void ProcSub( Stack_t* stk ) {
-    PRINT( "%s \n", __func__ )
+void ProcPop( Processor_t* processor) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
-    int b = StackTop( stk );
-    StackPop( stk );
-    int a = StackTop( stk );
-    StackPop( stk );
-
-    StackPush( stk, a - b );
+    StackPop( &( processor->stk ) );
 }
 
-void ProcDiv( Stack_t* stk ) {
-    PRINT( "%s \n", __func__ )
+void ProcAdd( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
-    int b   = StackTop( stk );
-    StackPop( stk );
-    int a = StackTop( stk );
-    StackPop( stk );
+    int a = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+    int b = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+
+    StackPush( &( processor->stk ), a + b );
+}
+
+void ProcSub( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
+
+    int b = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+    int a = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+
+    StackPush( &( processor->stk ), a - b );
+}
+
+void ProcDiv( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
+
+    int b   = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+    int a = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
 
     assert( b != 0 );
 
-    StackPush( stk, a / b );
+    StackPush( &( processor->stk ), a / b );
 }
 
-void ProcMul( Stack_t* stk ) {
-    PRINT( "%s \n", __func__ )
+void ProcMul( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
-    int a = StackTop( stk );
-    StackPop( stk );
-    int b = StackTop( stk );
-    StackPop( stk );
+    int a = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+    int b = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
 
-    StackPush( stk, a * b );
+    StackPush( &( processor->stk ), a * b );
 }
 
-void ProcPow( Stack_t* stk ) {  // FIXME: i don't work
-    PRINT( "%s \n", __func__ )
+void ProcPow( Processor_t* processor ) {  // FIXME: i don't work
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
-    int indicator = StackTop( stk );
-    StackPop( stk );
-    int base      = StackTop( stk );
-    StackPop( stk );
+    int indicator = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+    int base      = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
     int result    = 1;
 
     for ( int i = 1; i < indicator; i++ ) {
         result *= base;
     }
 
-    StackPush( stk, result );
+    StackPush( &( processor->stk ), result );
 }
 
-void ProcSqrt( Stack_t* stk ) {
-    PRINT( "%s \n", __func__ )
+void ProcSqrt( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
-    int a = StackTop( stk );
+    int a = StackTop( &( processor->stk ) );
     PRINT( "%d \n", a );
-    StackPop( stk );
-    StackPush( stk, ( int ) sqrt( a ) );
+    StackPop( &( processor->stk ) );
+    StackPush( &( processor->stk ), ( int ) sqrt( a ) );
 }
 
-void ProcIn( Stack_t* stk ) {           // FIXME: i don't work
-    PRINT( "%s \n", __func__ )
+void ProcIn( Processor_t* processor ) {           // FIXME: i don't work
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
     int number = 0;
 
     fprintf( stderr, "Input a number: " );
     scanf( "%d", &number );
 
-    StackPush( stk, number );
+    StackPush( &( processor->stk ), number );
 }
 
-void ProcOut( Stack_t* stk ) {
-    PRINT( "%s \n", __func__ )
+void ProcOut( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
 
-    int n = StackTop( stk );
-    StackPop( stk );
+    int n = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
 
     fprintf( stderr, "Output: %d \n", n );
 }
 
-void ProcPushR( Stack_t* stk, int* reg ) {
-    StackPush( stk, *reg );
+void ProcPushR( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
+
+    StackPush( &( processor->stk ), processor->regs[ processor->byte_code[ processor->instruction_ptr++ ] ] );
 }
 
-void ProcPopR( Stack_t* stk, int* reg ) {
-    *reg = StackTop( stk );
-    StackPop( stk );
+void ProcPopR( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
+
+    processor->regs[ processor->byte_code[ processor->instruction_ptr++ ] ] = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+}
+
+void ProcJump( Processor_t* processor ) {
+    my_assert( processor != NULL, ASSERT_ERR_NULL_PTR );
+
+    int command = processor->byte_code[ processor->instruction_ptr - 1 ];
+    int index = processor->byte_code[ processor->instruction_ptr++ ];
+
+    if ( command == JMP_CMD ) {
+        processor->instruction_ptr = index;
+        return;
+    }
+
+    int b = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
+    int a = StackTop( &( processor->stk ) );
+
+    if ( command == JB_CMD && a < b ) {
+        processor->instruction_ptr = index;
+    }
+    else if ( command == JA_CMD && a > b) {
+        processor->instruction_ptr = index;
+    }
+    else if ( command == JBE_CMD && a <= b) {
+        processor->instruction_ptr = index;
+    }
+    else if ( command == JAE_CMD && a >= b) {
+        processor->instruction_ptr = index;
+    }
+    else if ( a == b ) {
+        processor->instruction_ptr = index;
+    }
 }

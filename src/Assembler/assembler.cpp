@@ -90,7 +90,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                     assembler->byte_code[ assembler->instruction_cnt++ ] = number;
                 }
                 else {
-                    assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
+                    assembler->byte_code[ assembler->instruction_cnt ] += 32;
                     assembler->byte_code[ assembler->instruction_cnt++ ]    = register_or_not;
                 }
 
@@ -103,7 +103,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
 
                 sscanf( str_pointer, "%s", instruction2 );
                 if ( strlen( instruction2 ) > 0 ) {
-                    assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
+                    assembler->byte_code[ assembler->instruction_cnt ] += 32;
                     register_or_not = RegisterNameProcessing( instruction2 );
                     if ( register_or_not != -1 ) {
                         assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;

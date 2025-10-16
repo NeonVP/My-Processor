@@ -30,7 +30,7 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
 }
 
 char* ReadToBuffer( FileStat* input_file ) {
-    PRINT( "In %s \n", __func__ )
+    PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
 
     if ( input_file->size == 0 ) {
         input_file->size = DetermineFileSize( input_file->address );
@@ -49,7 +49,7 @@ char* ReadToBuffer( FileStat* input_file ) {
     my_assert( result_of_fclose == 0, ASSERT_ERR_FAIL_CLOSE );
 
     input_file->nLines = RowCounter( buffer );
-    PRINT( "Out %s \n", __func__ )
+    PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
 
     return buffer;
 }
@@ -58,7 +58,7 @@ void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
     my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
     my_assert( buffer  != NULL, ASSERT_ERR_NULL_PTR );
 
-    PRINT( "In %s \n", __func__ )
+    PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
 
     if ( nLines == 0 ) {
         nLines = RowCounter( buffer );
@@ -80,7 +80,7 @@ void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
         buffer++;
     }
 
-    PRINT( "Out %s \n", __func__ )
+    PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
 }
 
 size_t RowCounter( const char* buffer ) {
