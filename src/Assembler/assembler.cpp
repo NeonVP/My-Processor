@@ -2,6 +2,9 @@
 
 #define StrCompare( str1, str2 ) strncmp( str1, str2, sizeof( str2 ) - 1 )
 
+const int NO_HLT = 2;
+
+ON_DEBUG( void PrintLabels( int labels[ LABELS_NUMBER ] ); )
 
 void AssemblerDtor( Assembler_t* assembler ) {
     my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
@@ -25,12 +28,21 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
 
     // Every row have maximum 2 instructions, so max number of instructions is number of lines twice
     assembler->byte_code = ( int* ) calloc ( assembler->asm_file.nLines * 2, sizeof( int ) );
-    my_assert( assembler->byte_code != NULL, ASSERT_ERR_FAIL_ALLOCATE_MEMORY )
+    my_assert( assembler->byte_code != NULL, ASSERT_ERR_FAIL_ALLOCATE_MEMORY );
 
-        PRINT( COLOR_BRIGHT_YELLOW "\n---First Run---\n" );
-    int translate_result = TranslateAsmToByteCode( assembler, strings );
-        PRINT( COLOR_BRIGHT_YELLOW "\n---Second Run---\n");
-        translate_result = TranslateAsmToByteCode( assembler, strings );
+    assembler->labels    = ( int* ) calloc ( LABELS_NUMBER, sizeof( int ) );
+    my_assert( assembler->byte_code != NULL, ASSERT_ERR_NULL_PTR );
+    for ( size_t i = 0; i < LABELS_NUMBER; i++ ) assembler->labels[ i ] = -1;
+
+    int translate_result = 0;
+    PRINT( COLOR_BRIGHT_YELLOW "\n---First Run---\n" );
+    translate_result = TranslateAsmToByteCode( assembler, strings );
+    ON_DEBUG( PrintLabels( assembler->labels ); )
+    if ( translate_result == NO_HLT ) return 0;
+
+    PRINT( COLOR_BRIGHT_YELLOW "\n---Second Run---\n");
+    translate_result = TranslateAsmToByteCode( assembler, strings );
+    ON_DEBUG( PrintLabels( assembler->labels ); )
 
     free( buffer );
     free( strings );
@@ -94,6 +106,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                     assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
                     register_or_not = RegisterNameProcessing( instruction2 );
                     if ( register_or_not != -1 ) {
+                        assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
                         assembler->byte_code[ assembler->instruction_cnt++ ] = register_or_not;
                         PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, register_or_not );
                     }
@@ -119,6 +132,25 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
 
                 PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
                 break;
+            case JMP_CMD:
+            case JE_CMD:
+            case JB_CMD:
+            case JA_CMD:
+            case JBE_CMD:
+            case JAE_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+                sscanf( str_pointer, "%s", instruction2 );
+
+                if ( instruction2[0] == ':' ) {
+                    number = assembler->labels[ instruction2[1] - '0' ];
+                }
+                else {
+                    number = atoi( instruction2 );
+                }
+
+                assembler->byte_code[ assembler->instruction_cnt++ ] = number;
+                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, number );
+                break;
             case HLT_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
@@ -131,7 +163,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
     }
 
     fprintf( stderr, COLOR_BRIGHT_RED "There is no final HLT command \n" COLOR_RESET );
-    return 0;
+    return NO_HLT;
 }
 
 int AsmCodeProcessing( char* instruction ) {
@@ -147,9 +179,16 @@ int AsmCodeProcessing( char* instruction ) {
     if ( StrCompare( instruction, "DIV"  ) == 0 ) { return DIV_CMD;  }
     if ( StrCompare( instruction, "POW"  ) == 0 ) { return POW_CMD;  }
     if ( StrCompare( instruction, "SQRT" ) == 0 ) { return SQRT_CMD; }
-    if ( StrCompare( instruction, "IN"   ) == 0 ) { return SQRT_CMD; }
+    if ( StrCompare( instruction, "IN"   ) == 0 ) { return IN_CMD;   }
     if ( StrCompare( instruction, "OUT"  ) == 0 ) { return OUT_CMD;  }
+
     if ( StrCompare( instruction, "JMP"  ) == 0 ) { return JMP_CMD;  }
+    if ( StrCompare( instruction, "JE"   ) == 0 ) { return JE_CMD;   }
+    if ( StrCompare( instruction, "JB"   ) == 0 ) { return JB_CMD;   }
+    if ( StrCompare( instruction, "JA"   ) == 0 ) { return JA_CMD;   }
+    if ( StrCompare( instruction, "JBE"  ) == 0 ) { return JBE_CMD;  }
+    if ( StrCompare( instruction, "JAE"  ) == 0 ) { return JAE_CMD;  }
+
     if ( StrCompare( instruction, "HLT"  ) == 0 ) { return HLT_CMD;  }
 
     return 0;
@@ -190,3 +229,10 @@ int RegisterNameProcessing( char* name ) {
 
     return -1;
 }
+
+#ifdef _DEBUG
+void PrintLabels( int labels[ LABELS_NUMBER ] ) {
+    PRINT( COLOR_BLUE "Labels: \n" );
+    for ( size_t i = 0; i < LABELS_NUMBER; i ++ ) PRINT( COLOR_BRIGHT_CYAN "%-2lu - %d \n", i, labels[ i ] );
+}
+#endif

@@ -12,9 +12,12 @@
         }   ;
 
     #define PRINT(str, ...) fprintf( stderr, str COLOR_RESET, ##__VA_ARGS__ );
+
+    #define ON_DEBUG(...) __VA_ARGS__
 #else
     #define my_assert(arg, err_code) ((void) (arg));
     #define PRINT(str, ...)
+    #define ON_DEBUG(...) 
 #endif //_DEBUG
 
 enum Errors {
