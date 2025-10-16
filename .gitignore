@@ -1,8 +1,10 @@
 /obj
 /.vscode
-asm-code.txt
-byte-code.txt
+/asm-code.txt
+/byte-code.txt
 /processor_debug
 /processor
 /assembler
 /assembler_debug
+/asm-test.txt
+/assembler-debug

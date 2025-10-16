@@ -8,16 +8,16 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
 
     PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
 
-    ON_ASM( asm_file->address = "./asm-code.txt"; )
-            exe_file->address = "./byte-code.txt";
+    ON_ASM( asm_file->address = strdup( "./asm-code.txt"  ); )
+            exe_file->address = strdup( "./byte-code.txt" );
 
     int opt = 0;
     const char* opts = "i:o:";
 
     while ( ( opt = getopt( argc, argv, opts ) ) != -1 ) {
         switch ( opt ) {
-            case 'i': ON_ASM( asm_file->address = strdup( optarg ); )     exe_file->address = strdup( optarg );   break;
-            case 'o': ON_ASM( exe_file->address = strdup( optarg ); )                                             break;
+            case 'i': ON_ASM( asm_file->address = strdup( optarg ); ) ON_PROC( exe_file->address = strdup( optarg ); )   break;
+            case 'o': ON_ASM( exe_file->address = strdup( optarg ); )                                                    break;
 
             default:
                 ON_ASM( fprintf( stderr, "Warning: asm_file will be \"%s\" \n", asm_file->address ); )
@@ -30,7 +30,7 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
 }
 
 char* ReadToBuffer( FileStat* input_file ) {
-    PRINT( "In %s \n", __func__ )                       // TODO25: return buffer
+    PRINT( "In %s \n", __func__ )
 
     if ( input_file->size == 0 ) {
         input_file->size = DetermineFileSize( input_file->address );
@@ -54,7 +54,7 @@ char* ReadToBuffer( FileStat* input_file ) {
     return buffer;
 }
 
-void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {           // TODO25: conditional compilation PRINT
+void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
     my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
     my_assert( buffer  != NULL, ASSERT_ERR_NULL_PTR );
 

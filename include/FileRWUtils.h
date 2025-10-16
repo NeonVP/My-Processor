@@ -17,8 +17,14 @@
 #define ON_ASM(...)
 #endif
 
+#ifdef _PROC
+#define ON_PROC(...) __VA_ARGS__
+#else
+#define ON_PROC(...)
+#endif
+
 struct FileStat {
-    const char* address = "";
+    char* address = NULL;
     size_t nLines = 0;
     off_t  size   = 0;
 };

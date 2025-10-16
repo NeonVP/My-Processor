@@ -13,14 +13,18 @@ struct Assembler_t {
     FileStat exe_file        = {};
     size_t   instruction_cnt = 0;
     int*     byte_code       = NULL;
-    int      labels[10]      = {};
+    int*     labels          = NULL;
 };
 
 const size_t MAX_INSTRUCT_LEN = 10;
+const size_t LABELS_NUMBER    = 10;
+
+void AssemblerDtor( Assembler_t* assembler );
 
 int AsmCodeToByteCode( Assembler_t* assembler );
-int AsmCommandProcessing( char* instruction );
-int RegNameProcessing( char* name );
+int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings );
+int AsmCodeProcessing( char* instruction );
+int RegisterNameProcessing( char* name );
 
 void OutputInFile(Assembler_t* assembler );
 

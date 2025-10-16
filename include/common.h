@@ -27,15 +27,11 @@ enum ASM_CMD {
     JAE_CMD   = 15,
     JE_CMD    = 16,
     HLT_CMD   = 17,
+    MARK_CMD  = 30,
     PUSHR_CMD = 33,
     POPR_CMD  = 34
 };
 
 const size_t SIZE = 128;
-
-// struct AsmCommand_t{
-//     int cmd_number = 0;
-
-// };
 
 #endif

@@ -27,92 +27,50 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
     assembler->byte_code = ( int* ) calloc ( assembler->asm_file.nLines * 2, sizeof( int ) );
     my_assert( assembler->byte_code != NULL, ASSERT_ERR_FAIL_ALLOCATE_MEMORY )
 
+        PRINT( COLOR_BRIGHT_YELLOW "\n---First Run---\n" );
+    int translate_result = TranslateAsmToByteCode( assembler, strings );
+        PRINT( COLOR_BRIGHT_YELLOW "\n---Second Run---\n");
+        translate_result = TranslateAsmToByteCode( assembler, strings );
+
+    free( buffer );
+    free( strings );
+
+    PRINT( "\n" GRID COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
+
+    return translate_result;
+}
+
+int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
+    my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( strings   != NULL, ASSERT_ERR_NULL_PTR );
+
+    assembler->instruction_cnt = 0;
+
     char instruction1[ MAX_INSTRUCT_LEN ] = "";
     char instruction2[ MAX_INSTRUCT_LEN ] = "";
     int  number                           = 0;
 
     int command          = 0;
     int number_of_params = 0;
-    int n                = 0;
+    int n                = 0;       // TODO25: rename
     int register_or_not  = 0;
-
-    PRINT( "Start of loop with sscanf \n" )
-    // for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
-    //     number_of_params = sscanf( strings[ i ].ptr, "%s%n", instruction1, &n );
-    //     strings[ i ].ptr += n;
-    //     command = AsmCommandProcessing( instruction1 );
-
-    //     switch ( command ) {
-    //         case PUSH_CMD:
-    //         case POP_CMD:
-    //             assembler->byte_code[ assembler->instruction_cnt++ ] = command;
-    //             number_of_params = sscanf( strings[ i ].ptr, "%s", instruction2 );
-    //             number = atoi( instruction2 );
-
-    //             if ( number == 0 && instruction2[ 0 ] != '\0' ) {
-    //                 fprintf( stderr, COLOR_RED "Incorrect assembler command \"%s %s\" in line %lu. \n" COLOR_RESET, instruction1, instruction2, i + 1 );
-    //                 free( buffer );
-    //                 free( strings );
-    //                 return 0;
-    //             }
-
-    //             assembler->byte_code[ assembler->instruction_cnt++ ] = number;
-    //             PRINT( "%d %d  ---  %s %d \n", assembler->byte_code[ assembler->instruction_cnt - 2 ], assembler->byte_code[ assembler->instruction_cnt - 1 ], instruction1, number );
-    //             break;
-    //         case JMP_CMD:
-    //         case JA_CMD:
-    //         case JB_CMD:
-    //         case JAE_CMD:
-    //         case JBE_CMD:
-    //         case JE_CMD:
-    //             break;
-    //         case ADD_CMD:
-    //         case SUB_CMD:
-    //         case MUL_CMD:
-    //         case DIV_CMD:
-    //         case POW_CMD:
-    //         case SQRT_CMD:
-    //         case OUT_CMD:
-    //         case HLT_CMD:
-    //             assembler->byte_code[ assembler->instruction_cnt++ ] = command;
-    //             PRINT( "%d  ---  %s \n", command, instruction1 )
-    //             break;
-    //         default:
-    //             fprintf( stderr, "Incorrect assembler command \"%s %d\" in line %lu. \n", instruction1, number, i + 1 );
-    //             free( buffer );
-    //             free( strings );
-    //             return 0;
-    //         }
-    //     switch ( command ) {
-    //         case ADD_CMD:
-    //         case SUB_CMD:
-    //         case MUL_CMD:
-    //         case DIV_CMD:
-    //         case POW_CMD:
-    //         case SQRT_CMD:
-    //         case OUT_CMD:
-    //         case HLT_CMD:
-    //             assembler->byte_code[ assembler->instruction_cnt++ ] = command;
-    //             PRINT( "%d  ---  %s \n", command, instruction1 )
-    //             break;
-    //         default:
-    //             fprintf( stderr, "Incorrect assembler command \"%s\" in line %lu. \n", strings[i].ptr, i + 1 );
-    //             free( buffer );
-    //             free( strings );
-
-    //             return 0;
-    //     }
-    // }
+    const char* str_pointer = 0;
 
     for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
-        number_of_params = sscanf( strings[ i ].ptr, "%s%n", instruction1, &n );
-        strings[ i ].ptr += n;
+        str_pointer = strings[ i ].ptr;
+        number_of_params = sscanf( str_pointer, "%s%n", instruction1, &n );
+        str_pointer += n;
         command = AsmCodeProcessing( instruction1 );
-        assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
         switch ( command ) {
+            case MARK_CMD:
+                assembler->labels[ instruction1[1] - '0' ] = assembler->instruction_cnt + 1;
+
+                break;
             case PUSH_CMD:
-                sscanf( strings[ i ].ptr, "%s", instruction2 );
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+
+                sscanf( str_pointer, "%s", instruction2 );
                 register_or_not = RegisterNameProcessing( instruction2 );
 
                 if ( register_or_not == -1 ) {
@@ -124,20 +82,23 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
                     assembler->byte_code[ assembler->instruction_cnt++ ]    = register_or_not;
                 }
 
-                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, number );
+                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, assembler->byte_code[ assembler->instruction_cnt - 2 ],
+                                                                                                   assembler->byte_code[ assembler->instruction_cnt - 1 ] );
 
                 break;
             case POP_CMD:
-                sscanf( strings[ i ].ptr, "%s", instruction2 );
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+
+                sscanf( str_pointer, "%s", instruction2 );
                 if ( strlen( instruction2 ) > 0 ) {
                     assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
                     register_or_not = RegisterNameProcessing( instruction2 );
                     if ( register_or_not != -1 ) {
                         assembler->byte_code[ assembler->instruction_cnt++ ] = register_or_not;
-                        PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, number );
+                        PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, register_or_not );
                     }
                     else {
-                        PRINT( COLOR_BRIGHT_RED "Incorrect register name \"%s\" in file: %s::%lu \n", instruction2, assembler->asm_file.address, i );
+                        PRINT( COLOR_BRIGHT_RED "Incorrect register name \"%s\" in file: %s:%lu \n", instruction2, assembler->asm_file.address, i );
                         return 0;
                     }
                 }
@@ -154,24 +115,29 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
             case SQRT_CMD:
             case IN_CMD:
             case OUT_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+
                 PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
                 break;
+            case HLT_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+
+                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
+                return 1;
             default:
-                fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s::%lu \n", instruction1, assembler->asm_file.address, i );
+                fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s:%lu \n", instruction1, assembler->asm_file.address, i );
                 return 0;
         }
     }
 
-    free( buffer );
-    free( strings );
-
-    PRINT( GRID COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
-
-    return 1;
+    fprintf( stderr, COLOR_BRIGHT_RED "There is no final HLT command \n" COLOR_RESET );
+    return 0;
 }
 
 int AsmCodeProcessing( char* instruction ) {
     my_assert( instruction != NULL, ASSERT_ERR_NULL_PTR );
+
+    if ( instruction[0] == ':' )                  { return MARK_CMD; }
 
     if ( StrCompare( instruction, "PUSH" ) == 0 ) { return PUSH_CMD; }
     if ( StrCompare( instruction, "POP"  ) == 0 ) { return POP_CMD;  }
@@ -208,9 +174,17 @@ void OutputInFile( Assembler_t* assembler ) {
 int RegisterNameProcessing( char* name ) {
     my_assert( name != NULL, ASSERT_ERR_NULL_PTR );
 
+    int number = 0;
     if ( strlen( name ) == 3 ) {
         if ( name[0] == 'R' && name[2] == 'X' ) {
-            return name[1] - 'A' + 1;
+            number = name[1] - 'A' + 1;
+
+            if ( number < 8 ) {
+                return number;
+            }
+            else {
+                return -1;
+            }
         }
     }
 
