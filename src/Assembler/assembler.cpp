@@ -1,51 +1,64 @@
 #include "assembler.h"
 
 #define StrCompare( str1, str2 ) strncmp( str1, str2, sizeof( str2 ) - 1 )
+#define FREE_BUF_AND_STRINGS free( buffer ); free( strings );
 
-const int NO_HLT = 2;
+const int SUCCESS_RESULT = 1;
+const int FAILED_RESULT = 0;
 
 ON_DEBUG( void PrintLabels( int labels[ LABELS_NUMBER ] ); )
 
+
+void AssemblerCtor( Assembler_t* assembler, int argc, char** argv ) {
+    my_assert( assembler,        ASSERT_ERR_NULL_PTR        );
+    my_assert( isfinite( argc ), ASSERT_ERR_INFINITE_NUMBER );
+    my_assert( argv,             ASSERT_ERR_NULL_PTR        );
+
+    ArgvProcessing( argc, argv, &( assembler->asm_file ), &( assembler->exe_file ) );
+
+    for ( size_t i = 0; i < LABELS_NUMBER; i++ ) assembler->labels[ i ] = -1;
+}
+
 void AssemblerDtor( Assembler_t* assembler ) {
-    my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( assembler, ASSERT_ERR_NULL_PTR );
 
     free( assembler->byte_code );
+    assembler->byte_code = NULL;
+
     free( assembler->asm_file.address );
+    assembler->asm_file.address = NULL;
+
     free( assembler->exe_file.address );
+    assembler->exe_file.address = NULL;
 }
 
 int AsmCodeToByteCode( Assembler_t* assembler ) {
-    my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( assembler, ASSERT_ERR_NULL_PTR );
 
     PRINT( GRID COLOR_BRIGHT_YELLOW "In %s \n\n", __func__ )
 
     char* buffer = ReadToBuffer( &( assembler->asm_file ) );
 
     StrPar* strings = ( StrPar* ) calloc ( assembler->asm_file.nLines, sizeof( *strings ) );
-    my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
+    assert( strings && "Error in memory allocation for \"strings\" \n" );
 
     SplitIntoLines( strings, buffer, assembler->asm_file.nLines );
 
     // Every row have maximum 2 instructions, so max number of instructions is number of lines twice
     assembler->byte_code = ( int* ) calloc ( assembler->asm_file.nLines * 2, sizeof( int ) );
-    my_assert( assembler->byte_code != NULL, ASSERT_ERR_FAIL_ALLOCATE_MEMORY );
+    assert( assembler->byte_code && "Error in memory allocation for \"byte-code\" \n" );
 
-    assembler->labels    = ( int* ) calloc ( LABELS_NUMBER, sizeof( int ) );
-    my_assert( assembler->byte_code != NULL, ASSERT_ERR_NULL_PTR );
-    for ( size_t i = 0; i < LABELS_NUMBER; i++ ) assembler->labels[ i ] = -1;
+    int translate_result = 1;
 
-    int translate_result = 0;
-    PRINT( COLOR_BRIGHT_YELLOW "\n---First Run---\n" );
+    PRINT( COLOR_BRIGHT_YELLOW "\n  ---First Run--- \n" );
     translate_result = TranslateAsmToByteCode( assembler, strings );
     ON_DEBUG( PrintLabels( assembler->labels ); )
-    if ( translate_result == NO_HLT ) return 0;
+    if ( translate_result == 0 ) { FREE_BUF_AND_STRINGS; return 0; }
 
-    PRINT( COLOR_BRIGHT_YELLOW "\n---Second Run---\n");
+    PRINT( COLOR_BRIGHT_YELLOW "\n  ---Second Run---    \n");
     translate_result = TranslateAsmToByteCode( assembler, strings );
     ON_DEBUG( PrintLabels( assembler->labels ); )
-
-    free( buffer );
-    free( strings );
+    FREE_BUF_AND_STRINGS;
 
     PRINT( "\n" GRID COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
 
@@ -53,8 +66,8 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
 }
 
 int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
-    my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
-    my_assert( strings   != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( assembler, ASSERT_ERR_NULL_PTR );
+    my_assert( strings,   ASSERT_ERR_NULL_PTR );
 
     assembler->instruction_cnt = 0;
 
@@ -74,9 +87,11 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
         str_pointer += n;
         command = AsmCodeProcessing( instruction1 );
 
+        if ( number_of_params == 0 ) continue;
+
         switch ( command ) {
             case MARK_CMD:
-                assembler->labels[ instruction1[1] - '0' ] = assembler->instruction_cnt + 1;
+                assembler->labels[ instruction1[1] - '0' ] = ( int ) ( assembler->instruction_cnt + 1 );
 
                 break;
             case PUSH_CMD:
@@ -90,8 +105,8 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                     assembler->byte_code[ assembler->instruction_cnt++ ] = number;
                 }
                 else {
-                    assembler->byte_code[ assembler->instruction_cnt ] += 32;
-                    assembler->byte_code[ assembler->instruction_cnt++ ]    = register_or_not;
+                    assembler->byte_code[ assembler->instruction_cnt   ] += 32;
+                    assembler->byte_code[ assembler->instruction_cnt++ ] = register_or_not;
                 }
 
                 PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, assembler->byte_code[ assembler->instruction_cnt - 2 ],
@@ -111,7 +126,8 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                         PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, register_or_not );
                     }
                     else {
-                        PRINT( COLOR_BRIGHT_RED "Incorrect register name \"%s\" in file: %s:%lu \n", instruction2, assembler->asm_file.address, i );
+                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect register name \"%s\" in file: %s:%lu \n", instruction2, assembler->asm_file.address, i + 1 );
+
                         return 0;
                     }
                 }
@@ -142,7 +158,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                 sscanf( str_pointer, "%s", instruction2 );
 
                 if ( instruction2[0] == ':' ) {
-                    number = assembler->labels[ instruction2[1] - '0' ];
+                    number = assembler->labels[ instruction2[ 1 ] - '0' ];
                 }
                 else {
                     number = atoi( instruction2 );
@@ -151,23 +167,42 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                 assembler->byte_code[ assembler->instruction_cnt++ ] = number;
                 PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, number );
                 break;
+            case CALL_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+                sscanf( str_pointer, "%s", instruction2 );
+
+                if ( instruction2[ 0 ] == ':' ){
+                    assembler->byte_code[ assembler->instruction_cnt++ ] = assembler->labels[ instruction2[ 1 ] - '0' ];
+                }
+                else {
+                    fprintf( stderr, COLOR_BRIGHT_RED "Incorrect label \"%s\" after CALL in %s:%lu \n", instruction2, assembler->asm_file.address, i + 1 );
+
+                    return 0;
+                }
+
+                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, assembler->byte_code[ assembler->instruction_cnt - 1 ] );
+                break;
+            case RET_CMD:
+                assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+                break;
             case HLT_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
                 PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
                 return 1;
             default:
-                fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s:%lu \n", instruction1, assembler->asm_file.address, i );
+                fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s:%lu \n", instruction1, assembler->asm_file.address, i + 1 );
+
                 return 0;
         }
     }
 
     fprintf( stderr, COLOR_BRIGHT_RED "There is no final HLT command \n" COLOR_RESET );
-    return NO_HLT;
+    return 0;
 }
 
 int AsmCodeProcessing( char* instruction ) {
-    my_assert( instruction != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( instruction, ASSERT_ERR_NULL_PTR );
 
     if ( instruction[0] == ':' )                  { return MARK_CMD; }
 
@@ -181,6 +216,8 @@ int AsmCodeProcessing( char* instruction ) {
     if ( StrCompare( instruction, "SQRT" ) == 0 ) { return SQRT_CMD; }
     if ( StrCompare( instruction, "IN"   ) == 0 ) { return IN_CMD;   }
     if ( StrCompare( instruction, "OUT"  ) == 0 ) { return OUT_CMD;  }
+    if ( StrCompare( instruction, "CALL" ) == 0 ) { return CALL_CMD; }
+    if ( StrCompare( instruction, "RET"  ) == 0 ) { return RET_CMD;  }
 
     if ( StrCompare( instruction, "JMP"  ) == 0 ) { return JMP_CMD;  }
     if ( StrCompare( instruction, "JE"   ) == 0 ) { return JE_CMD;   }
@@ -195,10 +232,10 @@ int AsmCodeProcessing( char* instruction ) {
 }
 
 void OutputInFile( Assembler_t* assembler ) {
-    my_assert( assembler != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( assembler, ASSERT_ERR_NULL_PTR );
 
     FILE* file = fopen( assembler->exe_file.address, "w" );
-    my_assert( file != NULL, ASSERT_ERR_FAIL_OPEN );
+    my_assert( file, ASSERT_ERR_FAIL_OPEN );
 
     fprintf( file, "%lu", assembler->instruction_cnt );
 
@@ -211,7 +248,7 @@ void OutputInFile( Assembler_t* assembler ) {
 }
 
 int RegisterNameProcessing( char* name ) {
-    my_assert( name != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( name, ASSERT_ERR_NULL_PTR );
 
     int number = 0;
     if ( strlen( name ) == 3 ) {
@@ -230,8 +267,11 @@ int RegisterNameProcessing( char* name ) {
     return -1;
 }
 
+
 #ifdef _DEBUG
 void PrintLabels( int labels[ LABELS_NUMBER ] ) {
+    my_assert( labels, ASSERT_ERR_NULL_PTR );
+
     PRINT( COLOR_BLUE "Labels: \n" );
     for ( size_t i = 0; i < LABELS_NUMBER; i ++ ) PRINT( COLOR_BRIGHT_CYAN "%-2lu - %d \n", i, labels[ i ] );
 }
