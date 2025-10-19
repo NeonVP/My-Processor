@@ -4,7 +4,8 @@
 #define FREE_BUF_AND_STRINGS free( buffer ); free( strings );
 
 const int SUCCESS_RESULT = 1;
-const int FAILED_RESULT = 0;
+const int FAIL_RESULT = 0;
+const int NOT_REGISTER = -1;
 
 ON_DEBUG( void PrintLabels( int labels[ LABELS_NUMBER ] ); )
 
@@ -84,10 +85,10 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
     for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
         str_pointer = strings[ i ].ptr;
         number_of_params = sscanf( str_pointer, "%s%n", instruction1, &n );
+        if ( number_of_params == 0 ) continue;
+
         str_pointer += n;
         command = AsmCodeProcessing( instruction1 );
-
-        if ( number_of_params == 0 ) continue;
 
         switch ( command ) {
             case MARK_CMD:
@@ -100,7 +101,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                 sscanf( str_pointer, "%s", instruction2 );
                 register_or_not = RegisterNameProcessing( instruction2 );
 
-                if ( register_or_not == -1 ) {
+                if ( register_or_not == NOT_REGISTER ) {
                     number = atoi( instruction2 );
                     assembler->byte_code[ assembler->instruction_cnt++ ] = number;
                 }
@@ -120,7 +121,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                 if ( strlen( instruction2 ) > 0 ) {
                     assembler->byte_code[ assembler->instruction_cnt ] += 32;
                     register_or_not = RegisterNameProcessing( instruction2 );
-                    if ( register_or_not != -1 ) {
+                    if ( register_or_not != NOT_REGISTER ) {
                         assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
                         assembler->byte_code[ assembler->instruction_cnt++ ] = register_or_not;
                         PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, register_or_not );
@@ -128,7 +129,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                     else {
                         fprintf( stderr, COLOR_BRIGHT_RED "Incorrect register name \"%s\" in file: %s:%lu \n", instruction2, assembler->asm_file.address, i + 1 );
 
-                        return 0;
+                        return FAIL_RESULT;
                     }
                 }
                 else {
@@ -177,7 +178,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                 else {
                     fprintf( stderr, COLOR_BRIGHT_RED "Incorrect label \"%s\" after CALL in %s:%lu \n", instruction2, assembler->asm_file.address, i + 1 );
 
-                    return 0;
+                    return FAIL_RESULT;
                 }
 
                 PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, assembler->byte_code[ assembler->instruction_cnt - 1 ] );
@@ -189,16 +190,16 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
                 PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
-                return 1;
+                return SUCCESS_RESULT;
             default:
                 fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s:%lu \n", instruction1, assembler->asm_file.address, i + 1 );
 
-                return 0;
+                return FAIL_RESULT;
         }
     }
 
     fprintf( stderr, COLOR_BRIGHT_RED "There is no final HLT command \n" COLOR_RESET );
-    return 0;
+    return FAIL_RESULT;
 }
 
 int AsmCodeProcessing( char* instruction ) {
@@ -228,7 +229,7 @@ int AsmCodeProcessing( char* instruction ) {
 
     if ( StrCompare( instruction, "HLT"  ) == 0 ) { return HLT_CMD;  }
 
-    return 0;
+    return FAIL_RESULT;
 }
 
 void OutputInFile( Assembler_t* assembler ) {
@@ -259,12 +260,12 @@ int RegisterNameProcessing( char* name ) {
                 return number;
             }
             else {
-                return -1;
+                return NOT_REGISTER;
             }
         }
     }
 
-    return -1;
+    return NOT_REGISTER;
 }
 
 
