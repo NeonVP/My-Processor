@@ -1,9 +1,6 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <sys/types.h>
-#include <math.h>
-
 struct StrPar{
     const char* ptr = NULL;
     size_t len = 0;
@@ -27,11 +24,11 @@ enum ASM_CMD {
     JAE_CMD   = 15,
     JE_CMD    = 16,
     HLT_CMD   = 17,
+    CALL_CMD  = 28,
+    RET_CMD   = 29,
     MARK_CMD  = 30,
     PUSHR_CMD = 33,
     POPR_CMD  = 34
 };
-
-const size_t SIZE = 128;
 
 #endif

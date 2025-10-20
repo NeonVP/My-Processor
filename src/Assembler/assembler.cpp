@@ -45,6 +45,10 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
 
     SplitIntoLines( strings, buffer, assembler->asm_file.nLines );
 
+    for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
+        PRINT( "%c \n", *strings[i].ptr );
+    }
+
     // Every row have maximum 2 instructions, so max number of instructions is number of lines twice
     assembler->byte_code = ( int* ) calloc ( assembler->asm_file.nLines * 2, sizeof( int ) );
     assert( assembler->byte_code && "Error in memory allocation for \"byte-code\" \n" );
@@ -72,71 +76,92 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
 
     assembler->instruction_cnt = 0;
 
-    char instruction1[ MAX_INSTRUCT_LEN ] = "";
-    char instruction2[ MAX_INSTRUCT_LEN ] = "";
-    int  number                           = 0;
+    char instruction[ MAX_INSTRUCT_LEN ] = "";
+    Argument argument = {};
 
     int command          = 0;
     int number_of_params = 0;
-    int n                = 0;       // TODO25: rename
-    int register_or_not  = 0;
+    int number_of_characters_read = 0;
     const char* str_pointer = 0;
 
     for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
-        str_pointer = strings[ i ].ptr;
-        number_of_params = sscanf( str_pointer, "%s%n", instruction1, &n );
+        str_pointer = strings[i].ptr;
+        number_of_params = sscanf( str_pointer, "%s%n", instruction, &number_of_characters_read );
         if ( number_of_params == 0 ) continue;
 
-        str_pointer += n;
-        command = AsmCodeProcessing( instruction1 );
+        str_pointer += number_of_characters_read;
+        command = AsmCodeProcessing( instruction );
+        ArgumentProcessing( &argument, str_pointer );
 
         switch ( command ) {
             case MARK_CMD:
-                assembler->labels[ instruction1[1] - '0' ] = ( int ) ( assembler->instruction_cnt + 1 );
+                ArgumentProcessing( &argument, instruction );
 
-                break;
+                if ( argument.type == MARK ) {
+                    assembler->labels[ argument.value ] = ( int ) assembler->instruction_cnt;
+                    break;
+                }
+                else {
+                    fprintf( stderr, "Incorrect mark in file: %s:%lu\n", assembler->asm_file.address, i + 1 );
+                    return FAIL_RESULT;
+                }
+
             case PUSH_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
-                sscanf( str_pointer, "%s", instruction2 );
-                register_or_not = RegisterNameProcessing( instruction2 );
+                switch ( argument.type ) {
+                    case NUMBER:
+                        assembler->byte_code[ assembler->instruction_cnt++ ] = argument.value;
+                        break;
 
-                if ( register_or_not == NOT_REGISTER ) {
-                    number = atoi( instruction2 );
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = number;
-                }
-                else {
-                    assembler->byte_code[ assembler->instruction_cnt   ] += 32;
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = register_or_not;
+                    case REGISTER:
+                        assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
+                        assembler->byte_code[ assembler->instruction_cnt++ ] = argument.value;
+                        break;
+
+                    case VOID:
+                    case UNKNOWN:
+                    case MARK:
+                    default:
+                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect argument for PUSH in file: %s:%lu \n", assembler->asm_file.address, i + 1 );
+                        return FAIL_RESULT;
                 }
 
-                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, assembler->byte_code[ assembler->instruction_cnt - 2 ],
-                                                                                                   assembler->byte_code[ assembler->instruction_cnt - 1 ] );
+                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d %d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 2 ],
+                                                                                  assembler->byte_code[ assembler->instruction_cnt - 1 ] );
 
                 break;
+
             case POP_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
-                sscanf( str_pointer, "%s", instruction2 );
-                if ( strlen( instruction2 ) > 0 ) {
-                    assembler->byte_code[ assembler->instruction_cnt ] += 32;
-                    register_or_not = RegisterNameProcessing( instruction2 );
-                    if ( register_or_not != NOT_REGISTER ) {
+                switch ( argument.type ) {
+                    case REGISTER:
                         assembler->byte_code[ assembler->instruction_cnt - 1 ] += 32;
-                        assembler->byte_code[ assembler->instruction_cnt++ ] = register_or_not;
-                        PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, register_or_not );
-                    }
-                    else {
-                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect register name \"%s\" in file: %s:%lu \n", instruction2, assembler->asm_file.address, i + 1 );
+                        assembler->byte_code[ assembler->instruction_cnt++ ] = argument.value;
+                        break;
 
+                    case VOID:
+                        break;
+
+                    case UNKNOWN:
+                    case NUMBER:
+                    case MARK:
+                    default:
+                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect argument for POP in file: %s:%lu \n", assembler->asm_file.address, i + 1 );
                         return FAIL_RESULT;
-                    }
+                }
+
+                if ( argument.type == REGISTER ) {
+                    PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d %d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 2 ],
+                                                                                      assembler->byte_code[ assembler->instruction_cnt - 1 ] );
                 }
                 else {
-                    PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
+                    PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 1 ] );
                 }
 
                 break;
+
             case ADD_CMD:
             case SUB_CMD:
             case MUL_CMD:
@@ -147,8 +172,14 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
             case OUT_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
-                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
+                if ( argument.type != VOID ) {
+                    fprintf( stderr, COLOR_BRIGHT_RED "%d Incorrect command in file: %s:%lu \n", argument.type, assembler->asm_file.address, i + 1 );
+                    return FAIL_RESULT;
+                }
+
+                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d \n", strings[i].ptr, command );
                 break;
+
             case JMP_CMD:
             case JE_CMD:
             case JB_CMD:
@@ -156,43 +187,57 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
             case JBE_CMD:
             case JAE_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
-                sscanf( str_pointer, "%s", instruction2 );
 
-                if ( instruction2[0] == ':' ) {
-                    number = assembler->labels[ instruction2[ 1 ] - '0' ];
-                }
-                else {
-                    number = atoi( instruction2 );
+                switch ( argument.type ) {
+                    case MARK:
+                        assembler->byte_code[ assembler->instruction_cnt++ ] = assembler->labels[ argument.value ];
+                        break;
+
+                    case VOID:
+                    case UNKNOWN:
+                    case NUMBER:
+                    case REGISTER:
+                    default:
+                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect mark for JMP in file: %s:%lu\n", assembler->asm_file.address, i + 1 );
+                        return FAIL_RESULT;
                 }
 
-                assembler->byte_code[ assembler->instruction_cnt++ ] = number;
-                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, number );
+                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d %d \n", strings[i].ptr, command, argument.value );
                 break;
+
             case CALL_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
-                sscanf( str_pointer, "%s", instruction2 );
 
-                if ( instruction2[ 0 ] == ':' ){
-                    assembler->byte_code[ assembler->instruction_cnt++ ] = assembler->labels[ instruction2[ 1 ] - '0' ];
+                switch ( argument.type ) {
+                    case MARK:
+                        assembler->byte_code[ assembler->instruction_cnt++ ] = assembler->labels[ argument.value ];
+                        break;
+
+                    case VOID:
+                    case UNKNOWN:
+                    case NUMBER:
+                    case REGISTER:
+                    default:
+                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect mark for CALL in file: %s:%lu\n", assembler->asm_file.address, i + 1 );
+                        return FAIL_RESULT;
                 }
-                else {
-                    fprintf( stderr, COLOR_BRIGHT_RED "Incorrect label \"%s\" after CALL in %s:%lu \n", instruction2, assembler->asm_file.address, i + 1 );
 
-                    return FAIL_RESULT;
-                }
-
-                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d %d \n", instruction1, instruction2, command, assembler->byte_code[ assembler->instruction_cnt - 1 ] );
+                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d %d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 2],
+                                                                                  assembler->byte_code[ assembler->instruction_cnt - 1 ] );
                 break;
+
             case RET_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
                 break;
+
             case HLT_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
-                PRINT( COLOR_BRIGHT_GREEN "%-4s %-10s --- %-2d \n", instruction1, "", command );
+                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 1 ] );
                 return SUCCESS_RESULT;
+
             default:
-                fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s:%lu \n", instruction1, assembler->asm_file.address, i + 1 );
+                fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s:%lu \n", strings[i].ptr, assembler->asm_file.address, i + 1 );
 
                 return FAIL_RESULT;
         }
@@ -248,32 +293,59 @@ void OutputInFile( Assembler_t* assembler ) {
     my_assert( result_of_fclose == 0, ASSERT_ERR_FAIL_CLOSE )
 }
 
-int RegisterNameProcessing( char* name ) {
-    my_assert( name, ASSERT_ERR_NULL_PTR );
+int ArgumentProcessing( Argument* argument, const char* string ) {
+    my_assert( string,   ASSERT_ERR_NULL_PTR );
+    my_assert( argument, ASSERT_ERR_NULL_PTR );
 
-    int number = 0;
-    if ( strlen( name ) == 3 ) {
-        if ( name[0] == 'R' && name[2] == 'X' ) {
-            number = name[1] - 'A' + 1;
+    int number_of_elements_read = 0;
+    argument->type = VOID;
+    argument->value = -1;
 
-            if ( number < 8 ) {
-                return number;
+    number_of_elements_read = sscanf( string, "%d", &( argument->value ) );
+    if ( number_of_elements_read == 1 ) {
+        argument->type = NUMBER;
+
+        return argument->value;
+    }
+
+    char instruction[5] = "";
+    number_of_elements_read = sscanf( string, "%s", instruction );
+    if ( number_of_elements_read == 1 ) {
+        if ( instruction[0] == ':' ) {
+            argument->value = instruction[1] - '0';
+
+            if ( argument->value >= 0 && argument->value < 10 ) {
+                argument->type = MARK;
+
+                return argument->value;
             }
-            else {
-                return NOT_REGISTER;
+        }
+
+        if ( strlen( instruction ) == 3 && instruction[0] == 'R' && instruction[2] == 'X' ) {
+            argument->value = instruction[1] - 'A' + 1;
+
+            if ( argument->value < 8 ) {
+                argument->type = REGISTER;
+
+                return argument->value;
             }
         }
     }
+    else {
+        argument->type = VOID;
+        return argument->value;
+    }
 
-    return NOT_REGISTER;
+    argument->type = UNKNOWN;
+    argument->value = -1;
+    return argument->value;
 }
-
 
 #ifdef _DEBUG
 void PrintLabels( int labels[ LABELS_NUMBER ] ) {
     my_assert( labels, ASSERT_ERR_NULL_PTR );
 
     PRINT( COLOR_BLUE "Labels: \n" );
-    for ( size_t i = 0; i < LABELS_NUMBER; i ++ ) PRINT( COLOR_BRIGHT_CYAN "%-2lu - %d \n", i, labels[ i ] );
+    for ( size_t i = 0; i < LABELS_NUMBER; i++ ) PRINT( COLOR_BRIGHT_CYAN "%-2lu - %d \n", i, labels[ i ] );
 }
 #endif

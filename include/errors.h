@@ -17,7 +17,7 @@
 #else
     #define my_assert(arg, err_code) ((void) (arg));
     #define PRINT(str, ...)
-    #define ON_DEBUG(...) 
+    #define ON_DEBUG(...)
 #endif //_DEBUG
 
 enum Errors {

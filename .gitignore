@@ -2,9 +2,10 @@
 /.vscode
 /asm-code.txt
 /byte-code.txt
-/processor_debug
+/processor-debug
 /processor
 /assembler
-/assembler_debug
+/assembler-debug
 /asm-test.txt
 /assembler-debug
+/square-solver.txt

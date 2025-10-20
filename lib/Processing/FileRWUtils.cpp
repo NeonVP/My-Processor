@@ -1,9 +1,9 @@
 #include "FileRWUtils.h"
 
 void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file ) {
-            my_assert( argv     != NULL, ASSERT_ERR_NULL_PTR        )
-    ON_ASM( my_assert( asm_file != NULL, ASSERT_ERR_NULL_PTR        ) )
-            my_assert( exe_file != NULL, ASSERT_ERR_NULL_PTR        )
+            my_assert( argv,             ASSERT_ERR_NULL_PTR        )
+    ON_ASM( my_assert( asm_file,         ASSERT_ERR_NULL_PTR        ) )
+            my_assert( exe_file,         ASSERT_ERR_NULL_PTR        )
             my_assert( isfinite( argc ), ASSERT_ERR_INFINITE_NUMBER )
 
     PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
@@ -37,10 +37,10 @@ char* ReadToBuffer( FileStat* input_file ) {
     }
 
     char* buffer = ( char* ) calloc ( ( size_t ) input_file->size + 1, sizeof( *buffer ) );
-    my_assert( buffer != NULL, ASSERT_ERR_NULL_PTR )
+    my_assert( buffer, ASSERT_ERR_NULL_PTR )
 
     FILE* file = fopen( input_file->address, "r" );
-    my_assert( file != NULL, ASSERT_ERR_FAIL_OPEN )
+    my_assert( file, ASSERT_ERR_FAIL_OPEN )
 
     size_t result_of_read = fread( buffer, sizeof( char ), ( size_t )input_file->size, file );          // TODO25: release check
     my_assert( result_of_read != 0, ASSERT_ERR_FAIL_READ );
@@ -55,8 +55,8 @@ char* ReadToBuffer( FileStat* input_file ) {
 }
 
 void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
-    my_assert( strings != NULL, ASSERT_ERR_NULL_PTR );
-    my_assert( buffer  != NULL, ASSERT_ERR_NULL_PTR );
+    my_assert( strings, ASSERT_ERR_NULL_PTR );
+    my_assert( buffer,  ASSERT_ERR_NULL_PTR );
 
     PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
 

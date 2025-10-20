@@ -5,7 +5,7 @@ int main( int argc, char** argv ) {
     ArgvProcessing( argc, argv, &exe_file );
 
     Processor_t processor = {};
-    ProcCtor( &processor, 20 );
+    ProcCtor( &processor, 20, 5 );
 
     ExeFileToByteCode( &processor, &exe_file );
 
