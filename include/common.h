@@ -1,11 +1,6 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-struct StrPar{
-    char* ptr = NULL;
-    size_t len = 0;
-};
-
 enum ASM_CMD {
     PUSH_CMD  = 1,
     POP_CMD   = 2,
@@ -30,5 +25,13 @@ enum ASM_CMD {
     PUSHR_CMD = 33,
     POPR_CMD  = 34
 };
+
+// struct Commands_t {
+//     int command_number = 0;
+//     void* function_pointer = NULL;
+//     int number_of_parameters = 0;
+// } commands[] = {
+
+// };
 
 #endif

@@ -42,7 +42,7 @@ OUT
 HLT
 
 :0              ; Функция решения квадратного уравнения
-PUSH RBX        ; Вычисляем дискриминант: D = b^2 - 4*a*c
+PUSH RBX        ; D = b^2 - 4*a*c
 PUSH RBX
 MUL             ; b^2
 PUSH 4
@@ -53,7 +53,7 @@ MUL             ; 4*a*c
 SUB             ; b^2 - 4*a*c
 POP RDX         ; D
 
-PUSH RDX        ; Проверяем знак дискриминанта
+PUSH RDX        ; Проверка знака дискриминанта
 PUSH 0
 JB :4           ; D < 0 - нет корней
 
@@ -86,12 +86,12 @@ PUSH 2
 PUSH RAX
 MUL             ; 2*a
 DIV             ; (-b - sqrt(D)) / (2*a)
-OUT             ; Вывоl x2
+OUT             ; Вывод x2
 RET
 
 :5              ; Один корень: x = -b / (2*a)
 PUSH 1
-OUT             ; Выводим количество корней
+OUT             ; Вывод количество корней
 PUSH RBX
 PUSH -1
 MUL             ; -b
@@ -99,7 +99,7 @@ PUSH 2
 PUSH RAX
 MUL             ; 2*a
 DIV             ; -b / (2*a)
-OUT             ; Выводим корень
+OUT             ; Вывод корень
 RET
 
 :4              ; Нет действительных корней

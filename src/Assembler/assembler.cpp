@@ -326,7 +326,7 @@ int ArgumentProcessing( Argument* argument, const char* string ) {
             }
         }
 
-        if ( strlen( instruction ) == 3 && instruction[0] == 'R' && instruction[2] == 'X' ) {
+        if ( strlen( instruction ) == 3 && instruction[0] == 'R' && instruction[2] == 'X' ) {   // magic number massive with registers
             argument->value = instruction[1] - 'A' + 1;
 
             if ( argument->value < 8 ) {

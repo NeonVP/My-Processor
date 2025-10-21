@@ -6,7 +6,7 @@
 #include <assert.h>
 
 #include "FileRWUtils.h"
-#include "errors.h"
+#include "AssertUtils.h"
 
 #define PASS
 

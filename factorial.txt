@@ -9,13 +9,13 @@ HLT
 :0
     PUSH RAX    ; сохраняем n
     PUSH 1
-    JBE :1
+    JBE :1      ; n <= 1 -> базовый случай
 
     PUSH RAX
     PUSH RAX
     PUSH 1
     SUB
-    POP RAX     ; RAX = n - 1
+    POP RAX
     CALL :0
 
     POP RAX
@@ -26,7 +26,7 @@ HLT
 
     RET
 
-:1
+:1              ; базовый случай
     PUSH 1
     POP RBX
     RET

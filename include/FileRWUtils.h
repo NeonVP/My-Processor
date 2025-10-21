@@ -9,9 +9,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "common.h"
-#include "errors.h"
+#include "AssertUtils.h"
 
 #ifdef _ASM
 #define ON_ASM(...) __VA_ARGS__
@@ -29,6 +30,11 @@ struct FileStat {
     char* address = NULL;
     size_t nLines = 0;
     off_t  size   = 0;
+};
+
+struct StrPar{
+    char* ptr = NULL;
+    size_t len = 0;
 };
 
 void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file );

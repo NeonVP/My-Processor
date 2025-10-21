@@ -3,7 +3,7 @@
 
 #include "colors.h"
 
-#ifdef _DEBUG           // TODO: write with &&
+#ifdef _DEBUG
     #define my_assert(arg, err_code)                                                                                       \
         if ( !arg ) {                                                                                                      \
             fprintf( stderr, COLOR_RED "Error in function %s %s:%d: %s \n" COLOR_RESET,                                    \

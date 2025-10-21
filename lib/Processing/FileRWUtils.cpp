@@ -43,11 +43,11 @@ char* ReadToBuffer( FileStat* input_file ) {
     FILE* file = fopen( input_file->address, "r" );
     my_assert( file, ASSERT_ERR_FAIL_OPEN )
 
-    size_t result_of_read = fread( buffer, sizeof( char ), ( size_t )input_file->size, file );          // TODO25: release check
-    my_assert( result_of_read != 0, ASSERT_ERR_FAIL_READ );
+    size_t result_of_read = fread( buffer, sizeof( char ), ( size_t )input_file->size, file );
+    assert( result_of_read != 0 && "Fail read to buffer \n" );
 
     int result_of_fclose = fclose( file );
-    my_assert( result_of_fclose == 0, ASSERT_ERR_FAIL_CLOSE );
+    assert( result_of_fclose == 0 && "Fail close file \n" );
 
     input_file->nLines = RowCounter( buffer );
     PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )

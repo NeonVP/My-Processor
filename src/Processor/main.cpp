@@ -5,8 +5,6 @@ int main( int argc, char** argv ) {
     ArgvProcessing( argc, argv, &exe_file );
 
     Processor_t processor = {};
-    // processor.stk = { INIT( stk ) };
-    // processor.refund_stk = { INIT( refund_stk ) };
     ProcCtor( &processor, 8, 5 );
 
     ExeFileToByteCode( &processor, &exe_file );
