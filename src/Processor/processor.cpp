@@ -17,14 +17,14 @@ void ProcDtor( Processor_t* processor ) {
     processor->byte_code = NULL;
 }
 
-// ProcessorStatus_t ProcVerify( Processor_t* processor ) {
+// ProcessorStatus_t ProcVerify( Processor_t* processor ) {                // TODO: add Verify!!!
 
 // }
 
-ProcessorStatus_t ProcDump( Processor_t* processor, const int error ) {
+#ifdef _DEBUG
+ProcessorStatus_t ProcDump( const Processor_t* processor, const int error ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
-    // Processor INFO
     printf( COLOR_BRIGHT_YELLOW "+=+=+=+=+=+=+=+=+=+ PROCESSOR +=+=+=+=+=+=+=+=+=+ \n" );
     printf( COLOR_CYAN          "Processor address: " COLOR_RESET "%p \n", processor );
     printf( COLOR_CYAN          "Byte code pointer: " COLOR_RESET "%p \n", (void*)processor->byte_code );
@@ -35,8 +35,8 @@ ProcessorStatus_t ProcDump( Processor_t* processor, const int error ) {
     PRINT( COLOR_GREEN "\nMain Stack:\n" );
     ON_DEBUG( StackDump( &( processor->stk ) ); )
 
-    // PRINT( COLOR_GREEN "\nRefund Stack:\n" );
-    // StackDump( &( processor->refund_stk ) );
+    PRINT( COLOR_GREEN "\nRefund Stack:\n" );
+    StackDump( &( processor->refund_stk ) );
 
     PRINT( COLOR_BRIGHT_YELLOW "+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+ \n" );
 
@@ -46,38 +46,35 @@ ProcessorStatus_t ProcDump( Processor_t* processor, const int error ) {
 void PrintByteCodeInline(const Processor_t* processor) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
-    printf( COLOR_BRIGHT_YELLOW "\nBytecode:\n" COLOR_RESET );
-
-    for ( size_t i = 0; i < processor->instruction_count; i++ ) {
-        printf( "%3d ", processor->byte_code[i] );
-    }
-    printf( "\n" );
+    PRINT( COLOR_BRIGHT_YELLOW "\nBytecode:\n" );
 
     for ( size_t i = 0; i < processor->instruction_count; i++ ) {
         if ( i == processor->instruction_ptr ) {
-            printf( " ↑  " );
+            PRINT( COLOR_BRIGHT_RED ">%d< ", processor->byte_code[i] );
         } else {
-            printf( "    " );
+            PRINT( " %d  ", processor->byte_code[i] );
         }
     }
-    printf( "\n" );
+    PRINT( "\n" );
 
-    printf( COLOR_BRIGHT_CYAN "instruction_ptr = %lu; instruction_count = %lu" COLOR_RESET, processor->instruction_ptr,
-                                                                                            processor->instruction_count );
+    PRINT( COLOR_BRIGHT_CYAN "instruction_ptr = %lu; instruction_count = %lu\n",
+           processor->instruction_ptr, processor->instruction_count );
 }
 
 void PrintRegisters( const Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
-    printf( COLOR_BRIGHT_MAGENTA "\nRegisters:\n" COLOR_RESET );
+    PRINT( COLOR_BRIGHT_MAGENTA "\nRegisters:\n" );
 
     for ( size_t i = 0; i < REGS_NUMBER; i++ ) {
-        printf( " R%cX = %5d  ", ( i == 0 ) ? 'O' : ( int ) ( 'A' - 1 + i ), processor->regs[i] );
+        PRINT( " R%cX = %5d  ", ( i == 0 ) ? 'O' : ( int ) ( 'A' - 1 + i ), processor->regs[i] );
 
-        if ( ( i + 1 ) % 5 == 0 ) printf( "\n" );
+        if ( ( i + 1 ) % 5 == 0 ) PRINT( "\n" );
     }
-    if ( REGS_NUMBER % 5 != 0 ) printf( "\n" );
+
+    if ( REGS_NUMBER % 5 != 0 ) PRINT( "\n" );
 }
+#endif
 
 void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
@@ -127,6 +124,8 @@ int ByteCodeProcessing( Processor_t* processor ) {
 
     PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ );
 
+    ON_DEBUG( ProcDump( processor, 0 ) );
+
     int command = 0;
     while ( processor->instruction_ptr < processor->instruction_count ) {
         command = processor->byte_code[ processor->instruction_ptr++ ];
@@ -161,6 +160,9 @@ int ByteCodeProcessing( Processor_t* processor ) {
                 fprintf( stderr, COLOR_RED "Incorrect command %d \n" COLOR_RESET, *( processor->byte_code ) );
                 return 1;
         }
+
+        ON_DEBUG( ProcDump( processor, 0 ); )
+        ON_DEBUG( getchar(); )
     }
 
     PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )

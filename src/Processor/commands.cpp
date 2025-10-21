@@ -66,7 +66,7 @@ void ProcPow( Processor_t* processor ) {
     StackPop( &( processor->stk ) );
     int base = StackTop( &( processor->stk ) );
     StackPop( &( processor->stk ) );
-    
+
     int result = 1;
 
     for ( int i = 0; i < indicator; i++ ) {
@@ -131,6 +131,7 @@ void ProcJump( Processor_t* processor ) {
     int b = StackTop( &( processor->stk ) );
     StackPop( &( processor->stk ) );
     int a = StackTop( &( processor->stk ) );
+    StackPop( &( processor->stk ) );
 
     if ( command == JB_CMD && a < b ) {
         processor->instruction_ptr = index;
@@ -144,7 +145,7 @@ void ProcJump( Processor_t* processor ) {
     else if ( command == JAE_CMD && a >= b) {
         processor->instruction_ptr = index;
     }
-    else if ( a == b ) {
+    else if ( command == JE_CMD && a == b ) {
         processor->instruction_ptr = index;
     }
 }

@@ -27,18 +27,22 @@ struct Processor_t {
 void ProcCtor( Processor_t* processor, size_t stack_size, size_t refund_stack_size );
 void ProcDtor( Processor_t* processor );
 
-// ProcessorStatus_t ProcVerify( Processor_t* processor );
-ProcessorStatus_t ProcDump( Processor_t* processor, const int error );
-void PrintByteCodeInline( const Processor_t* processor );
-void PrintRegisters( const Processor_t* processor );
+
+#ifdef _DEBUG
+    // ProcessorStatus_t ProcVerify( Processor_t* processor );
+    ProcessorStatus_t ProcDump( const Processor_t* processor, const int error );
+
+    void PrintByteCodeInline  ( const Processor_t* processor );
+    void PrintRegisters       ( const Processor_t* processor );
+#endif
 
 void ExeFileToByteCode ( Processor_t* processor, FileStat* file );
 int  ByteCodeProcessing( Processor_t* processor );
-void FillInByteCode( Processor_t* processor, char* buffer );
+void FillInByteCode    ( Processor_t* processor, char* buffer );
 
 
 void ProcPush( Processor_t* processor);
-void ProcPop( Processor_t* processor);
+void ProcPop ( Processor_t* processor);
 
 void ProcAdd ( Processor_t* processor );
 void ProcSub ( Processor_t* processor );

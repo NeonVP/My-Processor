@@ -201,7 +201,8 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                         return FAIL_RESULT;
                 }
 
-                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d %d \n", strings[i].ptr, command, argument.value );
+                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d %d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 2 ],
+                                                                                  assembler->byte_code[ assembler->instruction_cnt - 1 ] );
                 break;
 
             case CALL_CMD:
