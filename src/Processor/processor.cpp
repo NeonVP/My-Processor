@@ -11,7 +11,8 @@ void ProcCtor( Processor_t* processor, size_t stack_size, size_t refund_stack_si
 void ProcDtor( Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR )
 
-    StackDtor( &( processor->stk ) );
+    StackDtor( &( processor->stk        ) );
+    StackDtor( &( processor->refund_stk ) );
     free( processor->byte_code );
     processor->byte_code = NULL;
 }
@@ -24,26 +25,58 @@ ProcessorStatus_t ProcDump( Processor_t* processor, const int error ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
     // Processor INFO
-    PRINT( COLOR_BRIGHT_YELLOW "+=+=+=+=+=+=+=+ PROCESSOR +=+=+=+=+=+=+=+ \n" );
-    PRINT( COLOR_CYAN          "Processor address: " COLOR_RESET "%p \n", processor );
-    PRINT( COLOR_CYAN          "Byte code pointer: " COLOR_RESET "%p \n", (void*)processor->byte_code );
-    PRINT( COLOR_CYAN          "Instruction ptr  : " COLOR_RESET "%lu\n", processor->instruction_ptr );
+    printf( COLOR_BRIGHT_YELLOW "+=+=+=+=+=+=+=+=+=+ PROCESSOR +=+=+=+=+=+=+=+=+=+ \n" );
+    printf( COLOR_CYAN          "Processor address: " COLOR_RESET "%p \n", processor );
+    printf( COLOR_CYAN          "Byte code pointer: " COLOR_RESET "%p \n", (void*)processor->byte_code );
 
-    // Registers
-    PRINT( COLOR_BRIGHT_MAGENTA "\nRegisters:\n" );
-    for ( size_t i = 0; i < REGS_NUMBER; i++ ) {
-        PRINT( "    R%cX = %d \n", i == 0 ? 'O' : ( int ) ( 'A' - 1 + i ), processor->regs[ i ] );
-    }
+    PrintByteCodeInline( processor );
+    PrintRegisters( processor );
 
     PRINT( COLOR_GREEN "\nMain Stack:\n" );
-    StackDump( &( processor->stk ) );
+    ON_DEBUG( StackDump( &( processor->stk ) ); )
 
     // PRINT( COLOR_GREEN "\nRefund Stack:\n" );
     // StackDump( &( processor->refund_stk ) );
 
-    PRINT( COLOR_BRIGHT_YELLOW "+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+ \n" );
+    PRINT( COLOR_BRIGHT_YELLOW "+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+ \n" );
 
     return SUCCESS;
+}
+
+void PrintByteCodeInline(const Processor_t* processor) {
+    my_assert( processor, ASSERT_ERR_NULL_PTR );
+
+    printf( COLOR_BRIGHT_YELLOW "\nBytecode:\n" COLOR_RESET );
+
+    for ( size_t i = 0; i < processor->instruction_count; i++ ) {
+        printf( "%3d ", processor->byte_code[i] );
+    }
+    printf( "\n" );
+
+    for ( size_t i = 0; i < processor->instruction_count; i++ ) {
+        if ( i == processor->instruction_ptr ) {
+            printf( " ↑  " );
+        } else {
+            printf( "    " );
+        }
+    }
+    printf( "\n" );
+
+    printf( COLOR_BRIGHT_CYAN "instruction_ptr = %lu; instruction_count = %lu" COLOR_RESET, processor->instruction_ptr,
+                                                                                            processor->instruction_count );
+}
+
+void PrintRegisters( const Processor_t* processor ) {
+    my_assert( processor, ASSERT_ERR_NULL_PTR );
+
+    printf( COLOR_BRIGHT_MAGENTA "\nRegisters:\n" COLOR_RESET );
+
+    for ( size_t i = 0; i < REGS_NUMBER; i++ ) {
+        printf( " R%cX = %5d  ", ( i == 0 ) ? 'O' : ( int ) ( 'A' - 1 + i ), processor->regs[i] );
+
+        if ( ( i + 1 ) % 5 == 0 ) printf( "\n" );
+    }
+    if ( REGS_NUMBER % 5 != 0 ) printf( "\n" );
 }
 
 void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {
@@ -57,31 +90,30 @@ void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {
     char* buffer = ReadToBuffer( file );
     char* old_buffer_ptr = buffer;
 
-    size_t number_of_instructions    = 0;
     int    number_of_characters_read = 0;
-    sscanf( buffer, "%lu%n", &number_of_instructions, &number_of_characters_read );
+    sscanf( buffer, "%lu%n", &( processor->instruction_count ), &number_of_characters_read );
     buffer += number_of_characters_read;
 
     // Every row have maximum 2 instructions, so max number of instructions is number of lines twice
-    processor->byte_code = ( int* ) calloc ( number_of_instructions, sizeof( *processor->byte_code ) );
+    processor->byte_code = ( int* ) calloc ( processor->instruction_count, sizeof( *processor->byte_code ) );
     assert( processor->byte_code && "Memory allocation error \n" );
 
-    FillInByteCode( processor, buffer, number_of_instructions );
+    FillInByteCode( processor, buffer );
 
     fprintf( stderr, "\n" );
 
     free( old_buffer_ptr );
 
-    PRINT( "Out %s \n", __func__ )
+    PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
 }
 
-void FillInByteCode( Processor_t* processor, char* buffer, size_t number_of_instructions ) {
+void FillInByteCode( Processor_t* processor, char* buffer ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
     int instruction = 0;
     int number_of_characters_read = 0;
 
-    for ( size_t i = 0; i < number_of_instructions; i++ ) {
+    for ( size_t i = 0; i < processor->instruction_count; i++ ) {
         if ( sscanf( buffer, "%d %n", &instruction, &number_of_characters_read ) == 1 ) {
             processor->byte_code[ i ] = instruction;
             buffer += number_of_characters_read;
@@ -93,10 +125,10 @@ void FillInByteCode( Processor_t* processor, char* buffer, size_t number_of_inst
 int ByteCodeProcessing( Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR )
 
-    PRINT( "In %s \n", __func__ );
+    PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ );
 
     int command = 0;
-    while ( processor->byte_code[ processor->instruction_ptr ] != HLT_CMD ) {
+    while ( processor->instruction_ptr < processor->instruction_count ) {
         command = processor->byte_code[ processor->instruction_ptr++ ];
 
         switch ( command ) {
@@ -129,10 +161,9 @@ int ByteCodeProcessing( Processor_t* processor ) {
                 fprintf( stderr, COLOR_RED "Incorrect command %d \n" COLOR_RESET, *( processor->byte_code ) );
                 return 1;
         }
-        usleep( 50000 );
     }
 
-    PRINT( "Out %s \n", __func__ )
+    PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
 
     return 0;
 }

@@ -59,16 +59,17 @@ void ProcDiv( Processor_t* processor ) {
     StackPush( &( processor->stk ), a / b );
 }
 
-void ProcPow( Processor_t* processor ) {  // FIXME: i don't work
+void ProcPow( Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
     int indicator = StackTop( &( processor->stk ) );
     StackPop( &( processor->stk ) );
-    int base      = StackTop( &( processor->stk ) );
+    int base = StackTop( &( processor->stk ) );
     StackPop( &( processor->stk ) );
-    int result    = 1;
+    
+    int result = 1;
 
-    for ( int i = 1; i < indicator; i++ ) {
+    for ( int i = 0; i < indicator; i++ ) {
         result *= base;
     }
 
@@ -79,7 +80,6 @@ void ProcSqrt( Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
     int a = StackTop( &( processor->stk ) );
-    PRINT( "%d \n", a );
     StackPop( &( processor->stk ) );
     StackPush( &( processor->stk ), ( int ) sqrt( a ) );
 }
@@ -87,20 +87,17 @@ void ProcSqrt( Processor_t* processor ) {
 void ProcIn( Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
-    ProcDump( processor, 0 );
     int number = 0;
 
     fprintf( stderr, "Input a number: " );
     scanf( "%d", &number );
 
     StackPush( &( processor->stk ), number );
-    StackDump( &( processor->stk ) );
 }
 
 void ProcOut( Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
-    ProcDump( processor, 0 );
     int n = StackTop( &( processor->stk ) );
     StackPop( &( processor->stk ) );
 

@@ -35,7 +35,8 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
 
 size_t RowCounter( const char* text );
 off_t DetermineFileSize( const char* file_address );
-void SplitIntoLines( StrPar* strings, char* text, const size_t nLines );
+bool IsEmptyString(const char* str, size_t len);
+size_t SplitIntoLines( StrPar* strings, char* text, const size_t nLines );
 
 char* ReadToBuffer( FileStat* input_file );
 

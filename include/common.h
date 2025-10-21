@@ -2,7 +2,7 @@
 #define COMMON_H
 
 struct StrPar{
-    const char* ptr = NULL;
+    char* ptr = NULL;
     size_t len = 0;
 };
 

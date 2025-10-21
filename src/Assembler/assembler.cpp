@@ -43,11 +43,7 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
     StrPar* strings = ( StrPar* ) calloc ( assembler->asm_file.nLines, sizeof( *strings ) );
     assert( strings && "Error in memory allocation for \"strings\" \n" );
 
-    SplitIntoLines( strings, buffer, assembler->asm_file.nLines );
-
-    for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
-        PRINT( "%c \n", *strings[i].ptr );
-    }
+    assembler->asm_file.nLines = SplitIntoLines( strings, buffer, assembler->asm_file.nLines );
 
     // Every row have maximum 2 instructions, so max number of instructions is number of lines twice
     assembler->byte_code = ( int* ) calloc ( assembler->asm_file.nLines * 2, sizeof( int ) );
@@ -83,6 +79,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
     int number_of_params = 0;
     int number_of_characters_read = 0;
     const char* str_pointer = 0;
+    int HLT_flag = 0;
 
     for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
         str_pointer = strings[i].ptr;
@@ -99,6 +96,8 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
 
                 if ( argument.type == MARK ) {
                     assembler->labels[ argument.value ] = ( int ) assembler->instruction_cnt;
+
+                    PRINT( COLOR_BRIGHT_GREEN "%-10s\n", strings[i].ptr );
                     break;
                 }
                 else {
@@ -173,7 +172,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
 
                 if ( argument.type != VOID ) {
-                    fprintf( stderr, COLOR_BRIGHT_RED "%d Incorrect command in file: %s:%lu \n", argument.type, assembler->asm_file.address, i + 1 );
+                    fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command in file: %s:%lu \n", assembler->asm_file.address, i + 1 );
                     return FAIL_RESULT;
                 }
 
@@ -198,7 +197,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
                     case NUMBER:
                     case REGISTER:
                     default:
-                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect mark for JMP in file: %s:%lu\n", assembler->asm_file.address, i + 1 );
+                        fprintf( stderr, COLOR_BRIGHT_RED "Incorrect mark for JMP in file: %s:%lu\nType - %d\n", assembler->asm_file.address, i + 1, argument.type );
                         return FAIL_RESULT;
                 }
 
@@ -228,13 +227,16 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
 
             case RET_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+
+                PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 1 ] );
                 break;
 
             case HLT_CMD:
                 assembler->byte_code[ assembler->instruction_cnt++ ] = command;
+                HLT_flag++;
 
                 PRINT( COLOR_BRIGHT_GREEN "%-10s --- %-2d \n", strings[i].ptr, assembler->byte_code[ assembler->instruction_cnt - 1 ] );
-                return SUCCESS_RESULT;
+                break;
 
             default:
                 fprintf( stderr, COLOR_BRIGHT_RED "Incorrect command \"%s\" in file: %s:%lu \n", strings[i].ptr, assembler->asm_file.address, i + 1 );
@@ -243,7 +245,9 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
         }
     }
 
-    fprintf( stderr, COLOR_BRIGHT_RED "There is no final HLT command \n" COLOR_RESET );
+    if ( HLT_flag ) return SUCCESS_RESULT;
+
+    fprintf( stderr, COLOR_BRIGHT_RED "There is no HLT command \n" COLOR_RESET );
     return FAIL_RESULT;
 }
 
@@ -308,7 +312,7 @@ int ArgumentProcessing( Argument* argument, const char* string ) {
         return argument->value;
     }
 
-    char instruction[5] = "";
+    char instruction[32] = "";
     number_of_elements_read = sscanf( string, "%s", instruction );
     if ( number_of_elements_read == 1 ) {
         if ( instruction[0] == ':' ) {
@@ -336,6 +340,7 @@ int ArgumentProcessing( Argument* argument, const char* string ) {
         return argument->value;
     }
 
+    PRINT( "%s\n", instruction );
     argument->type = UNKNOWN;
     argument->value = -1;
     return argument->value;

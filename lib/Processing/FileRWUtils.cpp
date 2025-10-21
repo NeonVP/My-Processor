@@ -16,8 +16,9 @@ void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileSt
 
     while ( ( opt = getopt( argc, argv, opts ) ) != -1 ) {
         switch ( opt ) {
-            case 'i': ON_ASM( asm_file->address = strdup( optarg ); ) ON_PROC( exe_file->address = strdup( optarg ); )   break;
-            case 'o': ON_ASM( exe_file->address = strdup( optarg ); )                                                    break;
+            case 'i': ON_ASM( free(asm_file->address); asm_file->address = strdup( optarg ); )
+                     ON_PROC( free(exe_file->address); exe_file->address = strdup( optarg ); )   break;
+            case 'o': ON_ASM( free(exe_file->address); exe_file->address = strdup( optarg ); )   break;
 
             default:
                 ON_ASM( fprintf( stderr, "Warning: asm_file will be \"%s\" \n", asm_file->address ); )
@@ -54,7 +55,7 @@ char* ReadToBuffer( FileStat* input_file ) {
     return buffer;
 }
 
-void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
+size_t SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
     my_assert( strings, ASSERT_ERR_NULL_PTR );
     my_assert( buffer,  ASSERT_ERR_NULL_PTR );
 
@@ -65,22 +66,44 @@ void SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
     }
 
     size_t line = 0;
-    strings[ line ].ptr = buffer;
+    size_t actual_line = 0;
+    strings[ actual_line ].ptr = buffer;
+    strings[ actual_line ].len = 0;
 
     while ( *buffer != '\0' ) {
-        if ( *buffer == '\n') {
+        if ( *buffer == ';' ) {
+            *buffer++ = '\0';
+            while ( *buffer != '\n' && *buffer != '\0' ) {
+                buffer++;
+            }
+        }
+
+        if ( *buffer == '\n' ) {
             *buffer = '\0';
+
+            if ( strings[ actual_line ].len > 0 ) {
+                actual_line++;
+            }
+
+            strings[ actual_line ].ptr = buffer + 1;
+            strings[ actual_line ].len = 0;
+
             line++;
-            strings[ line ].ptr = buffer + 1;
         }
         else {
-            strings[ line ].len++;
+            strings[ actual_line ].len++;
         }
 
         buffer++;
     }
 
-    PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
+    if ( strings[ actual_line ].len == 0 && actual_line > 0 ) {
+        actual_line--;
+    }
+
+    PRINT( COLOR_BRIGHT_YELLOW "Out %s\n", __func__ )
+
+    return actual_line + 1;
 }
 
 size_t RowCounter( const char* buffer ) {

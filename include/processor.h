@@ -6,14 +6,6 @@
 #include "FileRWUtils.h"
 #include "stack.h"
 
-#ifdef _DEBUG
-#define CHECK_STK_IN_DEBUG(...)                                    \
-    __VA_ARGS__                                                    \
-    ON_DEBUG( StackDump( &( processor->stk ) ); PRINT( "\n\n" ) )
-#else
-#define CHECK_STK_IN_DEBUG(...) __VA_ARGS__
-#endif // _DEBUG
-
 const int REGS_NUMBER = 10;
 
 enum ProcessorStatus_t {
@@ -28,6 +20,7 @@ struct Processor_t {
     Stack_t refund_stk              = {};
     int* byte_code                  = NULL;
     size_t instruction_ptr          = 0;
+    size_t instruction_count        = 0;
     StackData_t regs[ REGS_NUMBER ] = {};
 };
 
@@ -36,10 +29,12 @@ void ProcDtor( Processor_t* processor );
 
 // ProcessorStatus_t ProcVerify( Processor_t* processor );
 ProcessorStatus_t ProcDump( Processor_t* processor, const int error );
+void PrintByteCodeInline( const Processor_t* processor );
+void PrintRegisters( const Processor_t* processor );
 
 void ExeFileToByteCode ( Processor_t* processor, FileStat* file );
 int  ByteCodeProcessing( Processor_t* processor );
-void FillInByteCode( Processor_t* processor, char* buffer, size_t number_of_instructions );
+void FillInByteCode( Processor_t* processor, char* buffer );
 
 
 void ProcPush( Processor_t* processor);
