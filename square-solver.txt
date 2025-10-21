@@ -105,6 +105,4 @@ RET
 :4              ; Нет действительных корней
 PUSH 0
 OUT
-PUSH RDX
-OUT
 RET

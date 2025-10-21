@@ -8,7 +8,6 @@
 #include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <assert.h>
 
 #include "common.h"

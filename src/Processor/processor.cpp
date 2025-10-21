@@ -1,6 +1,5 @@
 #include "processor.h"
 
-
 void ProcCtor( Processor_t* processor, size_t stack_size, size_t refund_stack_size ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR )
 
@@ -48,7 +47,7 @@ void PrintByteCodeInline(const Processor_t* processor) {
 
     PRINT( COLOR_BRIGHT_YELLOW "\nBytecode:\n" );
 
-    for ( size_t i = 0; i < processor->instruction_count; i++ ) {
+    for ( size_t i = 0; i < processor->instruction_count; i++ ) {   // TODO: instruction_idx (rename)
         if ( i == processor->instruction_ptr ) {
             PRINT( COLOR_BRIGHT_RED ">%d< ", processor->byte_code[i] );
         } else {
@@ -69,7 +68,7 @@ void PrintRegisters( const Processor_t* processor ) {
     for ( size_t i = 0; i < REGS_NUMBER; i++ ) {
         PRINT( " R%cX = %5d  ", ( i == 0 ) ? 'O' : ( int ) ( 'A' - 1 + i ), processor->regs[i] );
 
-        if ( ( i + 1 ) % 5 == 0 ) PRINT( "\n" );
+        if ( ( i + 1 ) % 5 == 0 ) PRINT( "\n" );        // TODO: index_print_offset (5)
     }
 
     if ( REGS_NUMBER % 5 != 0 ) PRINT( "\n" );
@@ -91,13 +90,12 @@ void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {
     sscanf( buffer, "%lu%n", &( processor->instruction_count ), &number_of_characters_read );
     buffer += number_of_characters_read;
 
-    // Every row have maximum 2 instructions, so max number of instructions is number of lines twice
     processor->byte_code = ( int* ) calloc ( processor->instruction_count, sizeof( *processor->byte_code ) );
     assert( processor->byte_code && "Memory allocation error \n" );
 
     FillInByteCode( processor, buffer );
 
-    fprintf( stderr, "\n" );
+    fprintf( stderr, '\n' );
 
     free( old_buffer_ptr );
 
@@ -107,7 +105,7 @@ void ExeFileToByteCode( Processor_t* processor, FileStat* file ) {
 void FillInByteCode( Processor_t* processor, char* buffer ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
-    int instruction = 0;
+    int instruction = 0;        // TODO: current instruction
     int number_of_characters_read = 0;
 
     for ( size_t i = 0; i < processor->instruction_count; i++ ) {
@@ -162,6 +160,7 @@ int ByteCodeProcessing( Processor_t* processor ) {
         }
 
         ON_DEBUG( ProcDump( processor, 0 ); )
+        PRINT( COLOR_BLUE "Press enter for next step... \n" );
         ON_DEBUG( getchar(); )
     }
 

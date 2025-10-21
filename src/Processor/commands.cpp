@@ -54,7 +54,7 @@ void ProcDiv( Processor_t* processor ) {
     int a = StackTop( &( processor->stk ) );
     StackPop( &( processor->stk ) );
 
-    assert( b != 0 );
+    assert( b != 0 && "Can't divide by zero" );
 
     StackPush( &( processor->stk ), a / b );
 }
@@ -69,7 +69,7 @@ void ProcPow( Processor_t* processor ) {
 
     int result = 1;
 
-    for ( int i = 0; i < indicator; i++ ) {
+    for ( int i = 0; i < indicator; i++ ) { // TODO Rename indicator to exp
         result *= base;
     }
 
@@ -81,7 +81,7 @@ void ProcSqrt( Processor_t* processor ) {
 
     int a = StackTop( &( processor->stk ) );
     StackPop( &( processor->stk ) );
-    StackPush( &( processor->stk ), ( int ) sqrt( a ) );
+    StackPush( &( processor->stk ), ( int ) sqrt( a ) ); // TODO: If we are moving to double, then dont forget to change it
 }
 
 void ProcIn( Processor_t* processor ) {
@@ -105,7 +105,7 @@ void ProcOut( Processor_t* processor ) {
 }
 
 void ProcPushR( Processor_t* processor ) {
-    my_assert( processor, ASSERT_ERR_NULL_PTR );
+    my_assert( processor, ASSERT_ERR_NULL_PTR ); // TODO: Check for out-of-bounds access
 
     StackPush( &( processor->stk ), processor->regs[ processor->byte_code[ processor->instruction_ptr++ ] ] );
 }
@@ -147,13 +147,13 @@ void ProcJump( Processor_t* processor ) {
     }
     else if ( command == JE_CMD && a == b ) {
         processor->instruction_ptr = index;
-    }
+    } // TODO: add assert about unknown command in else / else with assert
 }
 
 void ProcCall( Processor_t* processor ) {
     my_assert( processor, ASSERT_ERR_NULL_PTR );
 
-    StackPush( &( processor->refund_stk ), ( int ) ( processor->instruction_ptr + 1 ) );
+    StackPush( &( processor->refund_stk ), ( int ) ( processor->instruction_ptr + 1 ) );        // TODO: refund_stk on size_t
 
     processor->instruction_ptr = ( size_t ) processor->byte_code[ processor->instruction_ptr ];
 }

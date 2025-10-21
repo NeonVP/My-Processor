@@ -35,7 +35,7 @@ enum ArgumentType {
     VOID     = 0,
     NUMBER   = 1,
     REGISTER = 2,
-    MARK     = 3
+    MARK     = 3    // label
 };
 
 struct Argument {

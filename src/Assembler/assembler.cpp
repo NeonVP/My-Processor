@@ -66,7 +66,7 @@ int AsmCodeToByteCode( Assembler_t* assembler ) {
     return translate_result;
 }
 
-int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
+int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) { // FIXME SHIIIIT. VERY BAD. !!!!!!!!!!!!!!!!!!
     my_assert( assembler, ASSERT_ERR_NULL_PTR );
     my_assert( strings,   ASSERT_ERR_NULL_PTR );
 
@@ -79,7 +79,7 @@ int TranslateAsmToByteCode( Assembler_t* assembler, StrPar* strings ) {
     int number_of_params = 0;
     int number_of_characters_read = 0;
     const char* str_pointer = 0;
-    int HLT_flag = 0;
+    int HLT_flag = 0;       // TODO: rename
 
     for ( size_t i = 0; i < assembler->asm_file.nLines; i++ ) {
         str_pointer = strings[i].ptr;
@@ -257,7 +257,7 @@ int AsmCodeProcessing( char* instruction ) {
 
     if ( instruction[0] == ':' )                  { return MARK_CMD; }
 
-    if ( StrCompare( instruction, "PUSH" ) == 0 ) { return PUSH_CMD; }
+    if ( StrCompare( instruction, "PUSH" ) == 0 ) { return PUSH_CMD; }          // TODO: use macros
     if ( StrCompare( instruction, "POP"  ) == 0 ) { return POP_CMD;  }
     if ( StrCompare( instruction, "ADD"  ) == 0 ) { return ADD_CMD;  }
     if ( StrCompare( instruction, "SUB"  ) == 0 ) { return SUB_CMD;  }
@@ -285,7 +285,7 @@ int AsmCodeProcessing( char* instruction ) {
 void OutputInFile( Assembler_t* assembler ) {
     my_assert( assembler, ASSERT_ERR_NULL_PTR );
 
-    FILE* file = fopen( assembler->exe_file.address, "w" );
+    FILE* file = fopen( assembler->exe_file.address, "w" );         // TODO: check in release
     my_assert( file, ASSERT_ERR_FAIL_OPEN );
 
     fprintf( file, "%lu", assembler->instruction_cnt );
@@ -295,7 +295,7 @@ void OutputInFile( Assembler_t* assembler ) {
     }
 
     int result_of_fclose = fclose( file );
-    my_assert( result_of_fclose == 0, ASSERT_ERR_FAIL_CLOSE )
+    my_assert( !result_of_fclose, ASSERT_ERR_FAIL_CLOSE )
 }
 
 int ArgumentProcessing( Argument* argument, const char* string ) {
@@ -313,20 +313,20 @@ int ArgumentProcessing( Argument* argument, const char* string ) {
         return argument->value;
     }
 
-    char instruction[32] = "";
+    char instruction[32] = "";          // TODO: %ms in scanf
     number_of_elements_read = sscanf( string, "%s", instruction );
     if ( number_of_elements_read == 1 ) {
         if ( instruction[0] == ':' ) {
             argument->value = instruction[1] - '0';
 
-            if ( argument->value >= 0 && argument->value < 10 ) {
+            if ( argument->value >= 0 && argument->value < 10 ) {       // magic number
                 argument->type = MARK;
 
                 return argument->value;
             }
         }
 
-        if ( strlen( instruction ) == 3 && instruction[0] == 'R' && instruction[2] == 'X' ) {   // magic number massive with registers
+        if ( strlen( instruction ) == 3 && instruction[0] == 'R' && instruction[2] == 'X' ) {   // magic number | massive with registers
             argument->value = instruction[1] - 'A' + 1;
 
             if ( argument->value < 8 ) {

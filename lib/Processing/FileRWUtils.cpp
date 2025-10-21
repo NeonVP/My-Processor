@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "FileRWUtils.h"
 
 void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file ) {
