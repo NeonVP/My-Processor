@@ -1,0 +1,110 @@
+IN
+POP RAX         ; a
+IN
+POP RBX         ; b
+IN
+POP RCX         ; c
+
+PUSH RAX        ; Проверка на линейный случай (a = 0)
+PUSH 0
+JE :1
+
+CALL :0         ; Квадратное уравнение
+HLT
+
+:1              ; Линейный случай: b*x + c = 0
+PUSH RBX
+PUSH 0
+JE :2
+
+PUSH 1          ; Один корень: x = -c/b
+OUT
+PUSH RCX
+PUSH -1
+MUL
+PUSH RBX
+DIV
+OUT
+HLT
+
+:2              ; Случай b = 0: проверяем c
+PUSH RCX
+PUSH 0
+JE :3
+
+PUSH 0          ; Нет корней: 0*x + c = 0, где c != 0
+OUT
+HLT
+
+:3              ; Бесконечно много корней: 0*x + 0 = 0
+PUSH 777
+OUT
+HLT
+
+:0              ; Функция решения квадратного уравнения
+PUSH RBX        ; Вычисляем дискриминант: D = b^2 - 4*a*c
+PUSH RBX
+MUL             ; b^2
+PUSH 4
+PUSH RAX
+MUL             ; 4*a
+PUSH RCX
+MUL             ; 4*a*c
+SUB             ; b^2 - 4*a*c
+POP RDX         ; D
+
+PUSH RDX        ; Проверяем знак дискриминанта
+PUSH 0
+JB :4           ; D < 0 - нет корней
+
+PUSH RDX
+PUSH 0
+JE :5           ; D = 0 - один корень
+
+PUSH 2          ; D > 0 - два корня
+OUT             ; Вывод количество корней
+
+PUSH RBX        ; Первый корень: x1 = (-b + sqrt(D)) / (2*a)
+PUSH -1
+MUL             ; -b
+PUSH RDX
+SQRT            ; sqrt(D)
+ADD             ; -b + sqrt(D)
+PUSH 2
+PUSH RAX
+MUL             ; 2*a
+DIV             ; (-b + sqrt(D)) / (2*a)
+OUT             ; Вывод x1
+
+PUSH RBX        ; Второй корень: x2 = (-b - sqrt(D)) / (2*a)
+PUSH -1
+MUL             ; -b
+PUSH RDX
+SQRT            ; sqrt(D)
+SUB             ; -b - sqrt(D)
+PUSH 2
+PUSH RAX
+MUL             ; 2*a
+DIV             ; (-b - sqrt(D)) / (2*a)
+OUT             ; Вывоl x2
+RET
+
+:5              ; Один корень: x = -b / (2*a)
+PUSH 1
+OUT             ; Выводим количество корней
+PUSH RBX
+PUSH -1
+MUL             ; -b
+PUSH 2
+PUSH RAX
+MUL             ; 2*a
+DIV             ; -b / (2*a)
+OUT             ; Выводим корень
+RET
+
+:4              ; Нет действительных корней
+PUSH 0
+OUT
+PUSH RDX
+OUT
+RET

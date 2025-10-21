@@ -1,0 +1,32 @@
+IN
+POP RAX
+CALL :0
+
+PUSH RBX        ; результат
+OUT
+HLT
+
+:0
+    PUSH RAX    ; сохраняем n
+    PUSH 1
+    JBE :1
+
+    PUSH RAX
+    PUSH RAX
+    PUSH 1
+    SUB
+    POP RAX     ; RAX = n - 1
+    CALL :0
+
+    POP RAX
+    PUSH RAX
+    PUSH RBX
+    MUL
+    POP RBX
+
+    RET
+
+:1
+    PUSH 1
+    POP RBX
+    RET
