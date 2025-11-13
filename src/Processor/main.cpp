@@ -1,8 +1,9 @@
 #include "processor.h"      // TODO: massive of struct for Processor command
 
+
 int main( int argc, char** argv ) {
     FileStat exe_file = {};
-    ArgvProcessing( argc, argv, &exe_file );
+    ArgvProcessing( argc, argv, &exe_file, "./exe-code.txt", NULL, NULL );
 
     Processor_t processor = {};
     ProcCtor( &processor, 8, 5 );

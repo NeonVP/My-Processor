@@ -1,12 +1,17 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
 
-#include <ctype.h>
-
 #include "FileRWUtils.h"
 #include "stack.h"
 
-const int REGS_NUMBER = 10;
+
+const int REGS_NUMBER = 8;
+
+#ifdef _PROC
+#define ON_PROC(...) __VA_ARGS__
+#else
+#define ON_PROC(...)
+#endif
 
 enum ProcessorStatus_t {
     SUCCESS,
@@ -16,25 +21,24 @@ enum ProcessorStatus_t {
 };
 
 struct Processor_t {
-    Stack_t stk                     = {};
-    Stack_t refund_stk              = {};
-    int* byte_code                  = NULL;
-    size_t instruction_ptr          = 0;
-    size_t instruction_count        = 0;
-    StackData_t regs[ REGS_NUMBER ] = {};
+    Stack_t     stk;    
+    Stack_t     refund_stk;
+    int*        byte_code;
+    size_t      instruction_ptr;
+    size_t      instruction_count;
+    StackData_t regs[ REGS_NUMBER ];
 };
 
 void ProcCtor( Processor_t* processor, size_t stack_size, size_t refund_stack_size );
 void ProcDtor( Processor_t* processor );
 
 
-#ifdef _DEBUG
-    // ProcessorStatus_t ProcVerify( Processor_t* processor );
-    ProcessorStatus_t ProcDump( const Processor_t* processor, const int error );
+// ProcessorStatus_t ProcVerify( Processor_t* processor );
+ProcessorStatus_t ProcDump( const Processor_t* processor, const int error );
 
-    void PrintByteCodeInline  ( const Processor_t* processor );
-    void PrintRegisters       ( const Processor_t* processor );
-#endif
+void PrintByteCodeInline  ( const Processor_t* processor );
+void PrintRegisters       ( const Processor_t* processor );
+
 
 void ExeFileToByteCode ( Processor_t* processor, FileStat* file );
 int  ByteCodeProcessing( Processor_t* processor );
@@ -61,7 +65,5 @@ void ProcJump( Processor_t* processor );
 
 void ProcCall( Processor_t* processor );
 void ProcRet ( Processor_t* processor );
-
-
 
 #endif // PROCESSOR_H

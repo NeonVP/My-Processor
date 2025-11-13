@@ -4,26 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <assert.h>
 
-#include "common.h"
 #include "AssertUtils.h"
 
-#ifdef _ASM
-#define ON_ASM(...) __VA_ARGS__
-#else
-#define ON_ASM(...)
-#endif
-
-#ifdef _PROC
-#define ON_PROC(...) __VA_ARGS__
-#else
-#define ON_PROC(...)
-#endif
 
 struct FileStat {
     char* address = NULL;
@@ -36,11 +23,11 @@ struct StrPar{
     size_t len = 0;
 };
 
-void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file );
+int ArgvProcessing(int argc, char **argv, FileStat* input_file,  const char* input_file_standart_address,
+                                          FileStat* output_file, const char* output_file_standart_address );
 
 size_t RowCounter( const char* text );
 off_t DetermineFileSize( const char* file_address );
-bool IsEmptyString(const char* str, size_t len);
 size_t SplitIntoLines( StrPar* strings, char* text, const size_t nLines );
 
 char* ReadToBuffer( FileStat* input_file );

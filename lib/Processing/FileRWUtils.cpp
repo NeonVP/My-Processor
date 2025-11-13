@@ -1,36 +1,40 @@
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "FileRWUtils.h"
+#include "AssertUtils.h"
 
-void ArgvProcessing( int argc, char** argv, ON_ASM( FileStat* asm_file, ) FileStat* exe_file ) {
-            my_assert( argv,             ASSERT_ERR_NULL_PTR        )
-    ON_ASM( my_assert( asm_file,         ASSERT_ERR_NULL_PTR        ) )
-            my_assert( exe_file,         ASSERT_ERR_NULL_PTR        )
-            my_assert( isfinite( argc ), ASSERT_ERR_INFINITE_NUMBER )
 
-    PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
-
-    ON_ASM( asm_file->address = strdup( "./asm-code.txt"  ); )
-            exe_file->address = strdup( "./byte-code.txt" );
+int ArgvProcessing( int argc, char** argv, FileStat* input_file,   const char* input_file_standart_address, 
+                                           FileStat* output_file,  const char* output_file_standart_address ) {
+    my_assert( argv,                         ASSERT_ERR_NULL_PTR );
+    my_assert( input_file,                   ASSERT_ERR_NULL_PTR );
+    my_assert( input_file_standart_address,  ASSERT_ERR_NULL_PTR );
 
     int opt = 0;
     const char* opts = "i:o:";
 
     while ( ( opt = getopt( argc, argv, opts ) ) != -1 ) {
         switch ( opt ) {
-            case 'i': ON_ASM( free(asm_file->address); asm_file->address = strdup( optarg ); )
-                     ON_PROC( free(exe_file->address); exe_file->address = strdup( optarg ); )   break;
-            case 'o': ON_ASM( free(exe_file->address); exe_file->address = strdup( optarg ); )   break;
-
+            case 'i':
+                input_file->address =  strdup( optarg );   break;
+            case 'o':
+                output_file->address = strdup( optarg );   break;
             default:
-                ON_ASM( fprintf( stderr, "Warning: asm_file will be \"%s\" \n", asm_file->address ); )
-                        fprintf( stderr, "Warning: exe_file will be \"%s\" \n", exe_file->address );
-                break;
+                fprintf( stderr, "Unknown option. Usage: %s [-i filename] [-o filename] \n", argv[0] );
+                return 1;
         }
     }
 
-    PRINT( COLOR_BRIGHT_YELLOW "Out %s \n", __func__ )
+    if ( argc == 1 ) {
+        input_file->address  = strdup( input_file_standart_address  );
+        output_file->address = strdup( output_file_standart_address );
+    }
+
+    return 0;
 }
+
 
 char* ReadToBuffer( FileStat* input_file ) {
     PRINT( COLOR_BRIGHT_YELLOW "In %s \n", __func__ )
@@ -73,13 +77,6 @@ size_t SplitIntoLines( StrPar* strings, char* buffer, size_t nLines ) {
     strings[ actual_line ].len = 0;
 
     while ( *buffer != '\0' ) {
-        if ( *buffer == ';' ) {
-            *buffer++ = '\0';
-            while ( *buffer != '\n' && *buffer != '\0' ) {
-                buffer++;
-            }
-        }
-
         if ( *buffer == '\n' ) {
             *buffer = '\0';
 

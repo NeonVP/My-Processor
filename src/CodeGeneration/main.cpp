@@ -5,7 +5,6 @@ int main( int argc, char** argv ) {
     GeneratorCtor( &generator, argc, argv );
 
     GeneratorReadToStrings( &generator );
-
     GeneratorEnumFormation( &generator );
     GeneratorCommandListFormation( &generator );
 

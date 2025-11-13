@@ -1,23 +1,23 @@
 IN
-POP RAX         ; a
+POP RAX
 IN
-POP RBX         ; b
+POP RBX
 IN
-POP RCX         ; c
+POP RCX
 
-PUSH RAX        ; Проверка на линейный случай (a = 0)
+PUSH RAX
 PUSH 0
 JE :1
 
-CALL :0         ; Квадратное уравнение
+CALL :0
 HLT
 
-:1              ; Линейный случай: b*x + c = 0
+:1
 PUSH RBX
 PUSH 0
 JE :2
 
-PUSH 1          ; Один корень: x = -c/b
+PUSH 1
 OUT
 PUSH RCX
 PUSH -1
@@ -27,16 +27,16 @@ DIV
 OUT
 HLT
 
-:2              ; Случай b = 0: проверяем c
+:2
 PUSH RCX
 PUSH 0
 JE :3
 
-PUSH 0          ; Нет корней: 0*x + c = 0, где c != 0
+PUSH 0
 OUT
 HLT
 
-:3              ; Бесконечно много корней: 0*x + 0 = 0
+:3
 PUSH 777
 OUT
 HLT

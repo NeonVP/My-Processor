@@ -2,14 +2,14 @@ IN
 POP RAX
 CALL :0
 
-PUSH RBX        ; результат
+PUSH RBX
 OUT
 HLT
 
 :0
-    PUSH RAX    ; сохраняем n
+    PUSH RAX
     PUSH 1
-    JBE :1      ; n <= 1 -> базовый случай
+    JBE :1
 
     PUSH RAX
     PUSH RAX
@@ -26,7 +26,7 @@ HLT
 
     RET
 
-:1              ; базовый случай
+:1
     PUSH 1
     POP RBX
     RET

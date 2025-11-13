@@ -5,9 +5,8 @@
 
 struct CodeGenerator_t {
     FileStat input_file        = {};
-    FileStat enum_file         = {};
     FileStat command_list_file = {};
-    StrPar* strings            = NULL;
+    StrPar*  strings           = NULL;
 };
 
 enum GenerationStatus {
